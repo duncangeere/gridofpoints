@@ -19,5 +19,5 @@ A Norns script for turning Grid into a quantized keyboard
 
 - out1: v/oct
 - out2: gate
-- out3: -5V to 5V on left/right axis
-- out4: 0 to 10V on left/right axis
+- out3: -5V to 5V on up/down axis
+- out4: 0 to 10V on up/down axis
