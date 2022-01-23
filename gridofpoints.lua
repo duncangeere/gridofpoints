@@ -1,7 +1,7 @@
 -- grid of points
--- v1.0 @duncangeere
+-- v1.1 @duncangeere
 --
--- eight notes, sixteen timbres
+-- sixteen notes, eight timbres
 -- with apologies to Liz Harris
 --
 -- >> k2: up one octave
@@ -13,13 +13,13 @@
 -- Required:
 -- Grid
 --
--- >> up/down controls pitch, left/right controls filter cutoff
+-- >> left/right controls pitch, up/down controls filter cutoff
 --
 -- Optional:
 -- Crow
 --
--- >> out1: gate
--- >> out2: v/oct
+-- >> out1: v/oct
+-- >> out2: gate
 -- >> out3: -5V to 5V on left/right axis
 -- >> out4: 0 to 10V on left/right axis
 engine.name = "PolyPerc" -- Pick synth engine
@@ -34,10 +34,7 @@ function init()
     musicutil = require("musicutil")
 
     -- Custom cutoff frequencies table
-    cutoffs = {
-        361, 369, 397, 462, 584, 783, 1086, 1519, 2110, 2890, 3892, 5149, 6697,
-        8574, 10817, 13467
-    }
+    cutoffs = {361, 397, 584, 1086, 2110, 3892, 6697, 10817}
 
     addparams()
     build_scale()
@@ -83,20 +80,22 @@ function g.key(x, y, z)
     -- When you press it...
     if z == 1 then -- if we press any grid key
 
-        -- Light the LED
+        g:all(0)
+
+        -- Light the LED 
         g:led(x, y, 15)
         g:refresh()
 
         -- Play a note
-        engine.cutoff(cutoffs[x])
-        engine.hz(notes_freq[9 - y])
+        engine.cutoff(cutoffs[9 - y])
+        engine.hz(notes_freq[x])
 
         -- Output gate crow
-        crow.output[2].volts = (notes_nums[9 - y] - 48) / 12
+        crow.output[1].volts = (notes_nums[9 - y] - 48) / 12
         crow.output[3].volts = -5 + (x - 1) * (10 / 15)
         crow.output[4].volts = (x - 1) * (10 / 15)
-        crow.output[1].volts = 0
-        crow.output[1].volts = 5
+        crow.output[2].volts = 0
+        crow.output[2].volts = 5
 
     end
 
@@ -104,11 +103,11 @@ function g.key(x, y, z)
     if z == 0 then
 
         -- Turn off LED
-        g:led(x, y, 0)
+        g:led(x, y, 1)
         g:refresh()
 
         -- End gate crow
-        crow.output[1].volts = 0
+        crow.output[2].volts = 0
 
     end
 end
@@ -180,7 +179,7 @@ end
 -- Build the scale
 function build_scale()
     notes_nums = musicutil.generate_scale_of_length(params:get("root_note"),
-                                                    params:get("scale"), 8) -- builds scale
+                                                    params:get("scale"), 16) -- builds scale
     notes_freq = musicutil.note_nums_to_freqs(notes_nums) -- converts note numbers to an array of frequencies
 
     screen_dirty = true
