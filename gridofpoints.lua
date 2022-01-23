@@ -1,7 +1,7 @@
 -- grid of points
--- v1.1 @duncangeere
+-- v1.0 @duncangeere
 --
--- sixteen notes, eight timbres
+-- eight notes, sixteen timbres
 -- with apologies to Liz Harris
 --
 -- >> k2: up one octave
@@ -91,9 +91,9 @@ function g.key(x, y, z)
         engine.hz(notes_freq[x])
 
         -- Output gate crow
-        crow.output[1].volts = (notes_nums[9 - y] - 48) / 12
-        crow.output[3].volts = -5 + (x - 1) * (10 / 15)
-        crow.output[4].volts = (x - 1) * (10 / 15)
+        crow.output[1].volts = (notes_nums[x] - 48) / 12
+        crow.output[3].volts = -5 + (y - 1) * (10 / 7)
+        crow.output[4].volts = (y - 1) * (10 / 7)
         crow.output[2].volts = 0
         crow.output[2].volts = 5
 
