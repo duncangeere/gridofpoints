@@ -4,7 +4,6 @@
 -- eight notes, sixteen timbres
 -- with apologies to Liz Harris
 --
---
 -- >> k2: up one octave
 -- >> k3: down one octave
 --
@@ -23,8 +22,7 @@
 -- >> out2: v/oct
 -- >> out3: -5V to 5V on left/right axis
 -- >> out4: 0 to 10V on left/right axis
--- Pick synth engine
-engine.name = "PolyPerc"
+engine.name = "PolyPerc" -- Pick synth engine
 
 -- Init grid
 g = grid.connect()
