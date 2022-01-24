@@ -35,6 +35,8 @@ function init()
 
     -- Custom cutoff frequencies table
     cutoffs = {361, 397, 584, 1086, 2110, 3892, 6697, 10817}
+    cols = g.device.cols
+    rows = g.device.rows
 
     addparams()
     build_scale()
@@ -87,13 +89,13 @@ function g.key(x, y, z)
         g:refresh()
 
         -- Play a note
-        engine.cutoff(cutoffs[9 - y])
+        engine.cutoff(cutoffs[1 + rows - y])
         engine.hz(notes_freq[x])
 
         -- Output gate crow
         crow.output[1].volts = (notes_nums[x] - 48) / 12
-        crow.output[3].volts = -5 + (y - 1) * (10 / 7)
-        crow.output[4].volts = (y - 1) * (10 / 7)
+        crow.output[3].volts = map(y, 1, rows, 5, -5)
+        crow.output[4].volts = map(y, 1, rows, 10, 0)
         crow.output[2].volts = 0
         crow.output[2].volts = 5
 
@@ -179,7 +181,7 @@ end
 -- Build the scale
 function build_scale()
     notes_nums = musicutil.generate_scale_of_length(params:get("root_note"),
-                                                    params:get("scale"), 16) -- builds scale
+                                                    params:get("scale"), cols) -- builds scale
     notes_freq = musicutil.note_nums_to_freqs(notes_nums) -- converts note numbers to an array of frequencies
 
     screen_dirty = true
@@ -193,5 +195,21 @@ function redraw_clock()
             redraw()
             screen_dirty = false
         end
+    end
+end
+
+-- Function to map values from one range to another
+function map(n, start, stop, newStart, newStop, withinBounds)
+    local value = ((n - start) / (stop - start)) * (newStop - newStart) +
+                      newStart
+
+    -- // Returns basic value
+    if not withinBounds then return value end
+
+    -- // Returns values constrained to exact range
+    if newStart < newStop then
+        return math.max(math.min(value, newStop), newStart)
+    else
+        return math.max(math.min(value, newStart), newStop)
     end
 end
