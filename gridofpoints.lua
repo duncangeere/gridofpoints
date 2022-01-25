@@ -1,7 +1,7 @@
 -- grid of points
--- v1.0 @duncangeere
+-- v1.3 @duncangeere
 --
--- eight notes, sixteen timbres
+-- sixteen notes, eight timbres
 -- with apologies to Liz Harris
 --
 -- >> k2: up one octave
@@ -37,6 +37,8 @@ function init()
     cutoffs = {361, 397, 584, 1086, 2110, 3892, 6697, 10817}
     cols = g.device.cols
     rows = g.device.rows
+
+    memory = {}
 
     addparams()
     build_scale()
@@ -82,10 +84,19 @@ function g.key(x, y, z)
     -- When you press it...
     if z == 1 then -- if we press any grid key
 
-        g:all(0)
+        -- forget an old key
+        forget()
 
-        -- Light the LED 
-        g:led(x, y, 15)
+        -- remember the key pressed
+        remember(x, y)
+
+        -- Light the LEDs in the memory 
+        g:all(0)
+        for i = 1, #memory do
+            g:led(memory[i].x, memory[i].y, memory[i].level)
+        end
+
+        -- Refresh the grid
         g:refresh()
 
         -- Play a note
@@ -103,14 +114,8 @@ function g.key(x, y, z)
 
     -- When you depress it...
     if z == 0 then
-
-        -- Turn off LED
-        g:led(x, y, 1)
-        g:refresh()
-
         -- End gate crow
         crow.output[2].volts = 0
-
     end
 end
 
@@ -212,4 +217,30 @@ function map(n, start, stop, newStart, newStop, withinBounds)
     else
         return math.max(math.min(value, newStart), newStop)
     end
+end
+
+-- function to remember
+function remember(xcoord, ycoord)
+    table.insert(memory, {x = xcoord, y = ycoord, level = 15})
+    print("printing table")
+    for i = 1, #memory do tab.print(memory[i]) end
+end
+
+-- function to forget
+function forget()
+    for i = 1, #memory do memory[i]["level"] = memory[i]["level"] - 2 end
+    filter_inplace(memory, function(elem) return elem["level"] >= 1 end)
+end
+
+-- filter a table in place based on a function
+function filter_inplace(arr, func)
+    local new_index = 1
+    local size_orig = #arr
+    for old_index, v in ipairs(arr) do
+        if func(v, old_index) then
+            arr[new_index] = v
+            new_index = new_index + 1
+        end
+    end
+    for i = new_index, size_orig do arr[i] = nil end
 end
