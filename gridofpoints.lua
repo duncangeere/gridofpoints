@@ -222,8 +222,6 @@ end
 -- function to remember
 function remember(xcoord, ycoord)
     table.insert(memory, {x = xcoord, y = ycoord, level = 15})
-    print("printing table")
-    for i = 1, #memory do tab.print(memory[i]) end
 end
 
 -- function to forget
