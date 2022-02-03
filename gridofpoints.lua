@@ -1,5 +1,5 @@
 -- grid of points
--- v1.3 @duncangeere
+-- v1.4 @duncangeere
 --
 -- sixteen notes, eight timbres
 -- with apologies to Liz Harris
