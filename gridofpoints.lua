@@ -44,9 +44,11 @@ function init()
     build_scale()
 
     screen_dirty = true
+    grid_dirty = true
 
     -- Start a clock to refresh the screen
     redraw_clock_id = clock.run(redraw_clock)
+    forget_clock_id = clock.run(forget)
 end
 
 -- Visuals
@@ -84,20 +86,9 @@ function g.key(x, y, z)
     -- When you press it...
     if z == 1 then -- if we press any grid key
 
-        -- forget an old key
-        forget()
-
         -- remember the key pressed
         remember(x, y)
-
-        -- Light the LEDs in the memory 
-        g:all(0)
-        for i = 1, #memory do
-            g:led(memory[i].x, memory[i].y, memory[i].level)
-        end
-
-        -- Refresh the grid
-        g:refresh()
+        grid_dirty = true
 
         -- Play a note
         engine.cutoff(cutoffs[1 + rows - y])
@@ -160,7 +151,7 @@ function addparams()
         name = "root note",
         min = 0,
         max = 127,
-        default = math.random(50, 70),
+        default = math.random(50, 60),
         formatter = function(param)
             return musicutil.note_num_to_name(param:get(), true)
         end,
@@ -196,9 +187,23 @@ end
 function redraw_clock()
     while true do
         clock.sleep(1 / 15)
+
+        -- Norns screen
         if screen_dirty then
             redraw()
             screen_dirty = false
+        end
+
+        -- Grid display
+        if grid_dirty then
+            -- Light the LEDs in the memory 
+            g:all(0)
+            for i = 1, #memory do
+                g:led(memory[i].x, memory[i].y, memory[i].level)
+            end
+
+            -- Refresh the grid
+            g:refresh()
         end
     end
 end
@@ -226,8 +231,12 @@ end
 
 -- function to forget
 function forget()
-    for i = 1, #memory do memory[i]["level"] = memory[i]["level"] - 2 end
-    filter_inplace(memory, function(elem) return elem["level"] >= 1 end)
+    while true do
+        clock.sleep(1 / 5)
+        for i = 1, #memory do memory[i]["level"] = memory[i]["level"] - 1 end
+        filter_inplace(memory, function(elem) return elem["level"] >= 1 end)
+        grid_dirty = true
+    end
 end
 
 -- filter a table in place based on a function
