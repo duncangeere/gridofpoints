@@ -1,5 +1,5 @@
 -- grid of points
--- v1.4 @duncangeere
+-- v1.5 @duncangeere
 --
 -- sixteen notes, eight timbres
 -- with apologies to Liz Harris
@@ -35,16 +35,19 @@ function init()
 
     -- Custom cutoff frequencies table
     cutoffs = {361, 397, 584, 1086, 2110, 3892, 6697, 10817}
-    cols = g.device.cols
-    rows = g.device.rows
 
     memory = {}
 
-    addparams()
-    build_scale()
-
     screen_dirty = true
     grid_dirty = true
+    grid_connected = false
+
+    -- Default row and column numbers
+    cols = 16
+    rows = 8
+
+    addparams()
+    build_scale()
 
     -- Start a clock to refresh the screen
     redraw_clock_id = clock.run(redraw_clock)
@@ -53,31 +56,44 @@ end
 
 -- Visuals
 function redraw()
+    if grid_connected then
+        -- clear the screen
+        screen.clear()
 
-    -- clear the screen
-    screen.clear()
+        -- text
+        screen.aa(1)
 
-    -- text
-    screen.aa(1)
+        -- root note
+        screen.font_size(65)
+        screen.font_face(19)
+        screen.level(2)
 
-    -- root note
-    screen.font_size(65)
-    screen.font_face(19)
-    screen.level(2)
+        screen.move(2, 56)
+        screen.text(musicutil.note_num_to_name(params:get("root_note"), true))
 
-    screen.move(2, 56)
-    screen.text(musicutil.note_num_to_name(params:get("root_note"), true))
+        -- scale
+        screen.font_size(10)
+        screen.font_face(4)
+        screen.level(15)
 
-    -- scale
-    screen.font_size(10)
-    screen.font_face(4)
-    screen.level(15)
+        screen.move(124, 60)
+        screen.text_right(scale_names[params:get("scale")])
 
-    screen.move(124, 60)
-    screen.text_right(scale_names[params:get("scale")])
+        -- trigger a screen update
+        screen.update()
+    else
+        -- Warn that grid is not connected
+        screen.clear()
+        screen.aa(1)
+        screen.font_size(10)
+        screen.font_face(4)
+        screen.move(64, 28)
+        screen.text_center("No grid detected.")
+        screen.move(64, 38)
+        screen.text_center("Please connect a grid.")
+        screen.update()
+    end
 
-    -- trigger a screen update
-    screen.update()
 end
 
 -- Grid functions
@@ -187,6 +203,26 @@ end
 function redraw_clock()
     while true do
         clock.sleep(1 / 15)
+
+        -- Check if grid is connected
+        if not grid_connected then
+            if g.device == nil then
+                grid_connected = false
+            else
+                print("grid connected!")
+                grid_connected = true
+                screen_dirty = true
+                rows = g.device.rows
+                cols = g.device.cols
+                build_scale()
+            end
+        else
+            if g.device == nil then
+                print("grid disconnected!")
+                grid_connected = false
+                screen_dirty = true
+            end
+        end
 
         -- Norns screen
         if screen_dirty then
