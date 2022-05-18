@@ -212,8 +212,8 @@ function redraw_clock()
                 print("grid connected!")
                 grid_connected = true
                 screen_dirty = true
-                rows = g.device.rows
-                cols = g.device.cols
+                rows = g.rows -- thanks demure!
+                cols = g.cols
                 build_scale()
             end
         else
