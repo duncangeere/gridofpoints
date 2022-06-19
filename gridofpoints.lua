@@ -20,8 +20,9 @@
 --
 -- >> out1: v/oct
 -- >> out2: gate
--- >> out3: -5V to 5V on left/right axis
--- >> out4: 0 to 10V on left/right axis
+-- >> out3: -5V to 5V on up/down axis
+-- >> out4: 0 to 10V on up/down axis
+--
 engine.name = "PolyPerc" -- Pick synth engine
 
 -- Init grid
@@ -41,6 +42,12 @@ function init()
     screen_dirty = true
     grid_dirty = true
     grid_connected = false
+
+    topleft = false;
+    topright = false;
+    bottomleft = false;
+    bottomright = false;
+    magic = false;
 
     -- Default row and column numbers
     cols = 16
@@ -102,27 +109,55 @@ function g.key(x, y, z)
     -- When you press it...
     if z == 1 then -- if we press any grid key
 
+        if (x == 1 and y == 1) then
+            topleft = true;
+            print("top left!")
+        end
+
+        if (x == 1 and y == rows) then
+            bottomleft = true;
+            print("bottom left!")
+        end
+
+        if (x == cols and y == 1) then
+            topright = true;
+            print("top right!")
+        end
+
+        if (x == cols and y == rows) then
+            bottomright = true;
+            print("bottom right!")
+        end
+
+        if (topleft and bottomleft and topright and bottomright) then
+            if not magic then
+                print("the magic begins...")
+                magic = true;
+                incantation();
+            else
+                print("the magic fades...")
+                magic = false;
+                clock.cancel(spell)
+            end
+        end
+
         -- remember the key pressed
         remember(x, y)
         grid_dirty = true
-
-        -- Play a note
-        engine.cutoff(cutoffs[1 + rows - y])
-        engine.hz(notes_freq[x])
-
-        -- Output gate crow
-        crow.output[1].volts = (notes_nums[x] - 48) / 12
-        crow.output[3].volts = map(y, 1, rows, 5, -5)
-        crow.output[4].volts = map(y, 1, rows, 10, 0)
-        crow.output[2].volts = 0
-        crow.output[2].volts = 5
-
+        playnote(x, y)
     end
 
     -- When you depress it...
     if z == 0 then
         -- End gate crow
         crow.output[2].volts = 0
+
+        -- Turn off the magic trackers
+        topleft = false;
+        topright = false;
+        bottomleft = false;
+        bottomright = false;
+
     end
 end
 
@@ -155,6 +190,19 @@ function enc(n, d)
     end
 
     screen_dirty = true
+end
+
+function playnote(x, y)
+    -- Play a note
+    engine.cutoff(cutoffs[1 + rows - y])
+    engine.hz(notes_freq[x])
+
+    -- Output gate crow
+    crow.output[1].volts = (notes_nums[x] - 48) / 12
+    crow.output[3].volts = map(y, 1, rows, 5, -5)
+    crow.output[4].volts = map(y, 1, rows, 10, 0)
+    crow.output[2].volts = 0
+    crow.output[2].volts = 5
 end
 
 -- All the parameters
@@ -268,11 +316,27 @@ end
 -- function to forget
 function forget()
     while true do
-        clock.sleep(1 / 5)
+        clock.sleep(1 / 3)
         for i = 1, #memory do memory[i]["level"] = memory[i]["level"] - 1 end
         filter_inplace(memory, function(elem) return elem["level"] >= 1 end)
         grid_dirty = true
     end
+end
+
+function incantation()
+    spell = clock.run(function()
+        while true do
+            clock.sleep(math.random(10))
+            rndx = math.random(cols)
+            rndy = math.random(rows)
+            playnote(rndx, rndy)
+            remember(rndx, rndy)
+            grid_dirty = true
+            clock.sleep(math.random())
+            -- End gate crow
+            crow.output[2].volts = 0
+        end
+    end)
 end
 
 -- filter a table in place based on a function
