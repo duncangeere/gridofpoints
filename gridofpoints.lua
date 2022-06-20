@@ -111,22 +111,22 @@ function g.key(x, y, z)
 
         if (x == 1 and y == 1) then
             topleft = true;
-            print("top left!")
+            -- print("top left!")
         end
 
         if (x == 1 and y == rows) then
             bottomleft = true;
-            print("bottom left!")
+            -- print("bottom left!")
         end
 
         if (x == cols and y == 1) then
             topright = true;
-            print("top right!")
+            -- print("top right!")
         end
 
         if (x == cols and y == rows) then
             bottomright = true;
-            print("bottom right!")
+            -- print("bottom right!")
         end
 
         if (topleft and bottomleft and topright and bottomright) then
