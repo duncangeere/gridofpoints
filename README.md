@@ -13,7 +13,7 @@ A Norns script for turning Grid into a quantized keyboard
 
 - press a key to make beautiful sounds
 - left/right position controls pitch
-- up/down position controls filter cutoff
+- up/down position controls filter cutoff / midi note length
 
 ## Crow (optional)
 

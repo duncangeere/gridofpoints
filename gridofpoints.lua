@@ -1,5 +1,5 @@
 -- grid of points
--- v1.6 @duncangeere
+-- v1.7 @duncangeere
 --
 -- sixteen notes, eight timbres
 -- with apologies to Liz Harris
@@ -13,7 +13,7 @@
 -- Required:
 -- Grid
 --
--- >> left/right controls pitch, up/down controls filter cutoff
+-- >> left/right controls pitch, up/down controls filter cutoff / midi note length
 --
 -- Optional:
 -- Crow
@@ -28,14 +28,18 @@ engine.name = "PolyPerc" -- Pick synth engine
 -- Init grid
 g = grid.connect()
 
+-- Init midi
+if midi.devices ~= nil then my_midi = midi.connect() end
+
 -- Init function
 function init()
 
     -- Import musicutil library: https://monome.org/docs/norns/reference/lib/musicutil
     musicutil = require("musicutil")
 
-    -- Custom cutoff frequencies table
+    -- Custom cutoff frequencies and midi note lengths table
     cutoffs = {361, 397, 584, 1086, 2110, 3892, 6697, 10817}
+    midilengths = {0.01, 0.05, 0.1, 0.2, 0.4, 0.6, 1, 3}
 
     memory = {}
 
@@ -203,6 +207,9 @@ function playnote(x, y)
     crow.output[4].volts = map(y, 1, rows, 10, 0)
     crow.output[2].volts = 0
     crow.output[2].volts = 5
+
+    -- MIDI
+    if midi.devices ~= nil then play_midi_note(notes_nums[x], midilengths[y]) end
 end
 
 -- All the parameters
@@ -235,6 +242,19 @@ function addparams()
         options = scale_names,
         default = math.random(#scale_names),
         action = function() build_scale() end -- update the scale when it's changed
+    }
+
+    -- MIDI
+    params:add_separator("MIDI")
+
+    -- MIDI channel number
+    params:add{
+        type = "number",
+        id = "midi_channel",
+        name = "MIDI channel number",
+        min = 1,
+        max = 16,
+        default = 1
     }
 end
 
@@ -350,4 +370,15 @@ function filter_inplace(arr, func)
         end
     end
     for i = new_index, size_orig do arr[i] = nil end
+end
+
+-- MIDI support
+function play_midi_note(midi_note, midi_notelength)
+    if midi.devices ~= nil then
+        stopping = clock.run(function()
+            my_midi:note_on(midi_note, 100, params:get("midi_channel"))
+            clock.sleep(midi_notelength)
+            my_midi:note_off(midi_note, 100, params:get("midi_channel"))
+        end)
+    end
 end
