@@ -1,7 +1,5 @@
 # gridofpoints
 
-![](gridofpoints.png)
-
 A Norns script for turning Grid into a quantized keyboard
 
 - k2: up one octave
