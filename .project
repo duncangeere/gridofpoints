@@ -1,0 +1,22 @@
+{
+  "file_info": {
+    "version": 1,
+    "kind": "project_metadata"
+  },
+  "installed_on": "2022-11-16T19:28:23.643346999Z",
+  "updated_on": "0001-01-01T00:00:00Z",
+  "project_url": "https://github.com/duncangeere/gridofpoints",
+  "catalog_entry": {
+    "project_name": "gridofpoints",
+    "project_url": "https://github.com/duncangeere/gridofpoints",
+    "author": "Duncan Geere",
+    "description": "sixteen notes, eight timbres",
+    "discussion_url": "https://llllllll.co/t/52122",
+    "documentation_url": "https://norns.community/authors/duncan-geere/gridofpoints",
+    "tags": [
+      "grid",
+      "crow",
+      "sequencer"
+    ]
+  }
+}
