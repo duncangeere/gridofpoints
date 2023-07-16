@@ -1,27 +1,29 @@
 -- grid of points
--- v1.7 @duncangeere
+-- v1.8 @duncangeere
 --
 -- sixteen notes, eight timbres
 -- with apologies to Liz Harris
 --
--- >> k2: up one octave
--- >> k3: down one octave
+-- > k2: up one octave
+-- > k3: down one octave
 --
--- >> e2: change root note
--- >> e3: change scale
--- 
+-- > e2: change root note
+-- > e3: change scale
+--
 -- Required:
 -- Grid
 --
--- >> left/right controls pitch, up/down controls filter cutoff / midi note length
+-- > left/right axis = pitch,
+-- > up/down axis = filter cutoff
+-- > up/down axis = MIDI CC
 --
 -- Optional:
 -- Crow
 --
--- >> out1: v/oct
--- >> out2: gate
--- >> out3: -5V to 5V on up/down axis
--- >> out4: 0 to 10V on up/down axis
+-- > out1: v/oct
+-- > out2: gate
+-- > out3: -5V-5V on y-axis
+-- > out4: 0-10V on y-axis
 --
 engine.name = "PolyPerc" -- Pick synth engine
 
@@ -33,13 +35,11 @@ if midi.devices ~= nil then my_midi = midi.connect() end
 
 -- Init function
 function init()
-
     -- Import musicutil library: https://monome.org/docs/norns/reference/lib/musicutil
     musicutil = require("musicutil")
 
     -- Custom cutoff frequencies and midi note lengths table
-    cutoffs = {361, 397, 584, 1086, 2110, 3892, 6697, 10817}
-    midilengths = {0.01, 0.05, 0.1, 0.2, 0.4, 0.6, 1, 3}
+    cutoffs = { 361, 397, 584, 1086, 2110, 3892, 6697, 10817 }
 
     memory = {}
 
@@ -104,15 +104,12 @@ function redraw()
         screen.text_center("Please connect a grid.")
         screen.update()
     end
-
 end
 
 -- Grid functions
 function g.key(x, y, z)
-
     -- When you press it...
     if z == 1 then -- if we press any grid key
-
         if (x == 1 and y == 1) then
             topleft = true;
             -- print("top left!")
@@ -161,13 +158,11 @@ function g.key(x, y, z)
         topright = false;
         bottomleft = false;
         bottomright = false;
-
     end
 end
 
 -- Key functions
 function key(n, z)
-
     -- KEY2 down one octave
     if n == 2 and z == 1 then
         params:set("root_note", params:get("root_note") - 12)
@@ -209,14 +204,22 @@ function playnote(x, y)
     crow.output[2].volts = 5
 
     -- MIDI
-    if midi.devices ~= nil then play_midi_note(notes_nums[x], midilengths[y]) end
+    if midi.devices ~= nil then
+        -- send MIDI CC
+        my_midi:cc(
+            params:get("midi_cc"),
+            math.floor(map(y, rows, 1, 0, 127)),
+            params:get("midi_channel")
+        )
+        -- send MIDI note
+        play_midi_note(notes_nums[x] - 12, params:get("midi_notelength"))
+    end
 end
 
 -- All the parameters
 function addparams()
-
     -- Root Note
-    params:add{
+    params:add {
         type = "number",
         id = "root_note",
         name = "root note",
@@ -235,7 +238,7 @@ function addparams()
         table.insert(scale_names, musicutil.SCALES[i].name)
     end
 
-    params:add{
+    params:add {
         type = "option",
         id = "scale",
         name = "scale",
@@ -248,7 +251,7 @@ function addparams()
     params:add_separator("MIDI")
 
     -- MIDI channel number
-    params:add{
+    params:add {
         type = "number",
         id = "midi_channel",
         name = "MIDI channel number",
@@ -256,12 +259,30 @@ function addparams()
         max = 16,
         default = 1
     }
+
+    -- MIDI CC number
+    params:add {
+        type = "number",
+        id = "midi_cc",
+        name = "MIDI cc number",
+        min = 0,
+        max = 127,
+        default = 1
+    }
+
+    -- MIDI note length
+    params:add {
+        type = "control",
+        id = "midi_notelength",
+        name = "MIDI note length (s)",
+        controlspec = controlspec.new(0.01, 10, 'exp', 0.01, 0.1, "secs", 0.01, false)
+    }
 end
 
 -- Build the scale
 function build_scale()
     notes_nums = musicutil.generate_scale_of_length(params:get("root_note"),
-                                                    params:get("scale"), cols) -- builds scale
+        params:get("scale"), cols)                        -- builds scale
     notes_freq = musicutil.note_nums_to_freqs(notes_nums) -- converts note numbers to an array of frequencies
 
     screen_dirty = true
@@ -300,7 +321,7 @@ function redraw_clock()
 
         -- Grid display
         if grid_dirty then
-            -- Light the LEDs in the memory 
+            -- Light the LEDs in the memory
             g:all(0)
             for i = 1, #memory do
                 g:led(memory[i].x, memory[i].y, memory[i].level)
@@ -315,7 +336,7 @@ end
 -- Function to map values from one range to another
 function map(n, start, stop, newStart, newStop, withinBounds)
     local value = ((n - start) / (stop - start)) * (newStop - newStart) +
-                      newStart
+        newStart
 
     -- // Returns basic value
     if not withinBounds then return value end
@@ -330,7 +351,7 @@ end
 
 -- function to remember
 function remember(xcoord, ycoord)
-    table.insert(memory, {x = xcoord, y = ycoord, level = 15})
+    table.insert(memory, { x = xcoord, y = ycoord, level = 15 })
 end
 
 -- function to forget
@@ -377,7 +398,7 @@ function play_midi_note(midi_note, midi_notelength)
     if midi.devices ~= nil then
         stopping = clock.run(function()
             my_midi:note_on(midi_note, 100, params:get("midi_channel"))
-            clock.sleep(midi_notelength)
+            clock.sleep(params:get("midi_notelength"))
             my_midi:note_off(midi_note, 100, params:get("midi_channel"))
         end)
     end

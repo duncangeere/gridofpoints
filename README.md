@@ -30,6 +30,10 @@ If you get an 'error: init' on load, then make sure you have a Grid plugged in. 
 
 ## Version history
 
+### v1.8
+
+Added MIDI CC output. It's mapped to the up/down axis - values near the top of the grid give you greater CC values. You can choose what CC channel you want to send in the params menu. This means that the MIDI note length is no longer mapped to the up/down axis as it was in the previous version. I also fixed a small bug where MIDI notes were playing one octave too high.
+
 ### v1.7
 
 Added MIDI output. It works just like regular output, except that moving along the up/down axis of an attached grid no longer changes filter cutoff. Instead it changes the MIDI note length. Near the top you get plucky 0.01-second notes, at the bottom you get sustained 3-second notes. You can customise this by editing the `midilengths` table near the top of `gridofpoints.lua`.
