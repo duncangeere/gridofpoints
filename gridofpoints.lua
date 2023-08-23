@@ -43,8 +43,10 @@ function init()
 
     -- Custom cutoff frequencies and midi note lengths table
     cutoffs = { 361, 397, 584, 1086, 2110, 3892, 6697, 10817 }
-
-    memory = {}
+    memory = {};
+    presets = {};
+    preset_clocks = {};
+    current_preset = 0;
 
     screen_dirty = true
     grid_dirty = true
@@ -60,6 +62,11 @@ function init()
     cols = 16
     rows = 8
 
+    -- Fill up the presets
+    table.insert(presets, { 60, 12 })
+    for i = 2, cols do
+        table.insert(presets, { 0, 0 })
+    end
     addparams()
     build_scale()
 
@@ -123,7 +130,7 @@ function g.key(x, y, z)
             -- print("bottom left!")
         end
 
-        if (x == cols and y == 1) then
+        if (x == cols and y == 2) then
             topright = true;
             -- print("top right!")
         end
@@ -145,10 +152,26 @@ function g.key(x, y, z)
             end
         end
 
-        -- remember the key pressed
-        remember(x, y)
+        -- If the press is on the first row of the grid
+        if (y == 1) then
+            -- Start a clock to track long presses
+            preset_clocks[x] = clock.run(function()
+                -- Wait for two seconds
+                clock.sleep(2);
+                -- Then save the preset in that slot
+                presets[x][1] = params:get("root_note");
+                presets[x][2] = params:get("scale");
+            end)
+        else
+            -- remember the key pressed
+            remember(x, y)
+
+            -- play the note
+            playnote(x, y)
+        end
+
+        -- Update the grid
         grid_dirty = true
-        playnote(x, y)
     end
 
     -- When you depress it...
@@ -161,6 +184,19 @@ function g.key(x, y, z)
         topright = false;
         bottomleft = false;
         bottomright = false;
+
+        -- If the press is on the first row of the grid
+        if (y == 1) then
+            -- Cancel the longpress tracking clock
+            clock.cancel(preset_clocks[x]);
+            -- Check if there's a preset in that slot
+            if (presets[x][1] > 0 and presets[x][2] > 0) then
+                -- Set the root note and scale from that preset
+                params:set("root_note", presets[x][1])
+                params:set("scale", presets[x][2])
+                current_preset = x;
+            end
+        end
     end
 end
 
@@ -196,14 +232,14 @@ end
 
 function playnote(x, y)
     -- Play a note
-    params:set("crossfade", (util.linexp(1, rows, 1, 0.001, y)))
+    params:set("crossfade", (util.linexp(2, rows, 1, 0.001, y)))
 
     engine.hz(notes_freq[x])
 
     -- Output gate crow
     crow.output[1].volts = (notes_nums[x] - 48) / 12
-    crow.output[3].volts = util.linlin(1, rows, 5, -5, y)
-    crow.output[4].volts = util.linlin(1, rows, 10, 0, y)
+    crow.output[3].volts = util.linlin(2, rows, 5, -5, y)
+    crow.output[4].volts = util.linlin(2, rows, 10, 0, y)
     crow.output[2].volts = 0
     crow.output[2].volts = 5
 
@@ -212,7 +248,7 @@ function playnote(x, y)
         -- send MIDI CC
         my_midi:cc(
             params:get("midi_cc"),
-            math.floor(util.linlin(rows, 1, 0, 127, y)),
+            math.floor(util.linlin(rows, 2, 0, 127, y)),
             params:get("midi_channel")
         )
         -- send MIDI note
@@ -398,6 +434,20 @@ function redraw_clock()
                 g:led(memory[i].x, memory[i].y, memory[i].level)
             end
 
+            -- Light the preset LEDs
+            for i = 1, cols do
+                if (presets[i][1] > 0 and presets[i][2] > 0) then
+                    g:led(i, 1, 4) -- mid colour for saved presets
+                else
+                    g:led(i, 1, 1) -- dimmer colour for empty presets
+                end
+            end
+
+            -- Light the current preset
+            if current_preset > 0 then
+                g:led(current_preset, 1, 8); -- bright colour for selected preset
+            end
+
             -- Refresh the grid
             g:refresh()
         end
@@ -424,7 +474,7 @@ function incantation()
         while true do
             clock.sleep(math.random(8))
             rndx = math.random(cols)
-            rndy = math.random(rows)
+            rndy = math.random(2,rows)
             playnote(rndx, rndy)
             remember(rndx, rndy)
             grid_dirty = true
