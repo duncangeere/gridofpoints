@@ -30,6 +30,10 @@ If you get an 'error: init' on load, then make sure you have a Grid plugged in. 
 
 ## Version history
 
+### v1.9
+
+A few changes. First and foremost is a new engine that crossfades between sine and square on the y-axis. You can now tweak the exact engine parameters in the params menu too. In addition, the k2 and k3 buttons now move in fifths rather than octaves, for greater performability. Finally, the top row of the grid is now taken up by a row of preset note/scale combinations that you can switch between. Long press to save, short press to load.
+
 ### v1.8
 
 Added MIDI CC output. It's mapped to the up/down axis - values near the top of the grid give you greater CC values. You can choose what CC channel you want to send in the params menu. This means that the MIDI note length is no longer mapped to the up/down axis as it was in the previous version. I also fixed a small bug where MIDI notes were playing one octave too high.

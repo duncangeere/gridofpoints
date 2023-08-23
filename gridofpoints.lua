@@ -1,5 +1,5 @@
 -- grid of points
--- v1.8 @duncangeere
+-- v1.9 @duncangeere
 --
 -- sixteen notes, eight timbres
 -- with apologies to Liz Harris
@@ -16,6 +16,9 @@
 -- > left/right axis = pitch,
 -- > up/down axis = timbre
 -- > up/down axis = MIDI CC
+-- > top row = root/scale presets
+-- > long press to save
+-- > short press to load
 --
 -- Optional:
 -- Crow
