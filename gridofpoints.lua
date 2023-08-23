@@ -4,8 +4,8 @@
 -- sixteen notes, eight timbres
 -- with apologies to Liz Harris
 --
--- > k2: up one octave
--- > k3: down one octave
+-- > k2: up a fifth
+-- > k3: down a fifth
 --
 -- > e2: change root note
 -- > e3: change scale
@@ -165,13 +165,13 @@ end
 function key(n, z)
     -- KEY2 down one octave
     if n == 2 and z == 1 then
-        params:set("root_note", params:get("root_note") - 12)
+        params:set("root_note", params:get("root_note") - 7)
         build_scale()
     end
 
     -- KEY3 up one octave
     if n == 3 and z == 1 then
-        params:set("root_note", params:get("root_note") + 12)
+        params:set("root_note", params:get("root_note") + 7)
         build_scale()
     end
 

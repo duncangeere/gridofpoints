@@ -2,10 +2,10 @@
 
 Eight notes, sixteen timbres. A simple, well-commented Norns script for turning Grid into a quantized keyboard.
 
-- k2: up one octave
-- k3: down one octave
 - e2: change root note
 - e3: change scale
+- k2: up a fifth
+- k3: down a fifth
 
 ## Grid (required)
 
