@@ -11,7 +11,7 @@ Eight notes, sixteen timbres. A simple, well-commented Norns script for turning 
 
 - press a key to make beautiful sounds
 - left/right position controls pitch
-- up/down position controls filter cutoff / midi note length
+- up/down position controls timbre / midi CC
 
 ## Crow (optional)
 

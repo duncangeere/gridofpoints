@@ -14,7 +14,7 @@
 -- Grid
 --
 -- > left/right axis = pitch,
--- > up/down axis = filter cutoff
+-- > up/down axis = timbre
 -- > up/down axis = MIDI CC
 --
 -- Optional:
