@@ -193,8 +193,8 @@ end
 
 function playnote(x, y)
     -- Play a note
-    params:set("crossfade",(util.linexp(1,8,0.001,1,y)))
-    
+    params:set("crossfade", (util.linexp(1, rows, 1, 0.001, y)))
+
     engine.hz(notes_freq[x])
 
     -- Output gate crow
