@@ -32,7 +32,7 @@ If you get an 'error: init' on load, then make sure you have a Grid plugged in. 
 
 ### v1.9
 
-A few changes. First and foremost is a new engine that crossfades between sine and square on the y-axis. You can now tweak the exact engine parameters in the params menu too. In addition, the k2 and k3 buttons now move in fifths rather than octaves, for greater performability. Finally, the top row of the grid is now taken up by a row of preset note/scale combinations that you can switch between. Long press to save, short press to load.
+A few changes. First and foremost is a new engine that crossfades between sine and square on the y-axis. You can now tweak the exact engine parameters in the params menu too. In addition, the k2 and k3 buttons now move in fifths rather than octaves, for greater performability. Finally, the top row of the grid is now taken up by a row of preset note/scale combinations that you can switch between. Long press to save, short press to load. The first preset is populated with a C minor pentatonic scale by default.
 
 ### v1.8
 

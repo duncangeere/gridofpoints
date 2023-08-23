@@ -65,8 +65,11 @@ function init()
         cols = g.cols
     end
 
-    -- Fill up the presets
-    table.insert(presets, { 60, 12 })
+    -- Fill up the presets table
+    -- Default first preset is C minor pentatonic, feel free to replace this with whatever you want
+    table.insert(presets, { 48, 12 })
+
+    -- The rest are all zeros
     for i = 2, cols do
         table.insert(presets, { 0, 0 })
     end
@@ -482,7 +485,7 @@ function incantation()
         while true do
             clock.sync(math.random(8))
             rndx = math.random(cols)
-            rndy = math.random(2,rows)
+            rndy = math.random(2, rows)
             playnote(rndx, rndy)
             remember(rndx, rndy)
             grid_dirty = true
