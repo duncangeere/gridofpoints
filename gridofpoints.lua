@@ -41,16 +41,14 @@ function init()
     -- Import musicutil library: https://monome.org/docs/norns/reference/lib/musicutil
     musicutil = require("musicutil")
 
-    -- Custom cutoff frequencies and midi note lengths table
-    cutoffs = { 361, 397, 584, 1086, 2110, 3892, 6697, 10817 }
     memory = {};
     presets = {};
     preset_clocks = {};
     current_preset = 0;
 
-    screen_dirty = true
-    grid_dirty = true
-    grid_connected = false
+    screen_dirty = true;
+    grid_dirty = true;
+    grid_connected = false;
 
     topleft = false;
     topright = false;
@@ -59,15 +57,24 @@ function init()
     magic = false;
 
     -- Default row and column numbers
-    cols = 16
-    rows = 8
+    if g.device == nil then
+        cols = 16
+        rows = 8
+    else
+        rows = g.rows -- thanks demure!
+        cols = g.cols
+    end
 
     -- Fill up the presets
     table.insert(presets, { 60, 12 })
     for i = 2, cols do
         table.insert(presets, { 0, 0 })
     end
+
+    -- Add engine parameters
     addparams()
+
+    -- Build the notes scale
     build_scale()
 
     -- Start a clock to refresh the screen
@@ -120,7 +127,8 @@ end
 function g.key(x, y, z)
     -- When you press it...
     if z == 1 then -- if we press any grid key
-        if (x == 1 and y == 1) then
+        -- Magic mode tracking
+        if (x == 1 and y == 2) then
             topleft = true;
             -- print("top left!")
         end
@@ -472,7 +480,7 @@ end
 function incantation()
     spell = clock.run(function()
         while true do
-            clock.sleep(math.random(8))
+            clock.sync(math.random(8))
             rndx = math.random(cols)
             rndy = math.random(2,rows)
             playnote(rndx, rndy)
