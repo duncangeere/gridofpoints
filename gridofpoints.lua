@@ -199,8 +199,8 @@ function playnote(x, y)
 
     -- Output gate crow
     crow.output[1].volts = (notes_nums[x] - 48) / 12
-    crow.output[3].volts = util.linlin(1, rows, 5, -5,y)
-    crow.output[4].volts = util.linlin(1, rows, 10, 0,y)
+    crow.output[3].volts = util.linlin(1, rows, 5, -5, y)
+    crow.output[4].volts = util.linlin(1, rows, 10, 0, y)
     crow.output[2].volts = 0
     crow.output[2].volts = 5
 
@@ -209,7 +209,7 @@ function playnote(x, y)
         -- send MIDI CC
         my_midi:cc(
             params:get("midi_cc"),
-            math.floor(util.linlin(rows, 1, 0, 127,y)),
+            math.floor(util.linlin(rows, 1, 0, 127, y)),
             params:get("midi_channel")
         )
         -- send MIDI note
@@ -219,19 +219,18 @@ end
 
 -- All the parameters
 function addparams()
-    
     -- Engine
     params:add_separator("Engine")
-    
+
     ---- Engine parameters
     params:add {
         type = "control",
         id = "pulsewidth", name = "pulse width",
         -- controlspec.new(min, max, warp, step, default, units, quantum, wrap)
-        controlspec = controlspec.new(0.01, 0.99, 'lin', 0.01, 0.5, "", 0.01/(0.99-0.01), false),
+        controlspec = controlspec.new(0.01, 0.99, 'lin', 0.01, 0.5, "", 0.01 / (0.99 - 0.01), false),
         action = function(x) engine.pw(x) end
     }
-    
+
     params:add {
         type = "control",
         id = "cutoff", name = "filter cutoff",
@@ -239,32 +238,32 @@ function addparams()
         controlspec = controlspec.new(20, 20000, 'exp', 0, 2000, "Hz"),
         action = function(x) engine.cutoff(x) end
     }
-    
+
     params:add {
         type = "control",
         id = "db", name = "db",
         -- controlspec.new(min, max, warp, step, default, units, quantum, wrap)
         --controlspec = controlspec.new(-96, 32, 'lin', 0.1, -6, "", 0.1/(32+96), false),
-        controlspec = controlspec.new(-96, 32, 'lin', 1, -6, 'db', 1/(32+96), false),
+        controlspec = controlspec.new(-96, 32, 'lin', 1, -6, 'db', 1 / (32 + 96), false),
         action = function(x) engine.db(x) end
     }
-    
+
     params:add {
         type = "control",
         id = "gain", name = "filter res gain",
         -- controlspec.new(min, max, warp, step, default, units, quantum, wrap)
-        controlspec = controlspec.new(0, 4, 'lin', 0.1, 2, "", 0.1/(4-0), false),
+        controlspec = controlspec.new(0, 4, 'lin', 0.1, 2, "", 0.1 / (4 - 0), false),
         action = function(x) engine.gain(x) end
     }
-    
+
     params:add {
         type = "control",
         id = "release", name = "release",
         -- controlspec.new(min, max, warp, step, default, units, quantum, wrap)
-        controlspec = controlspec.new(0.1, 10, 'exp', 0.05, 0.5, "s", 0.01/(10-0.1), false),
+        controlspec = controlspec.new(0.1, 10, 'exp', 0.05, 0.5, "s", 0.01 / (10 - 0.1), false),
         action = function(x) engine.release(x) end
     }
-    
+
     params:add {
         type = "control",
         id = "pan", name = "pan",
@@ -272,7 +271,7 @@ function addparams()
         controlspec = controlspec.new(-1, 1, 'lin', 0.01, 0, "", 0.01, false),
         action = function(x) engine.pan(x) end
     }
-    
+
     params:add {
         type = "control",
         id = "crossfade", name = "osc crossfade",
@@ -280,10 +279,10 @@ function addparams()
         controlspec = controlspec.new(0, 1, 'lin', 0.01, 0.5, "", 0.01, false),
         action = function(x) engine.crossfade(x) end
     }
-    
+
     -- Quantiser
     params:add_separator("Quantiser")
-  
+
     ---- Root Note
     params:add {
         type = "number",
@@ -343,7 +342,7 @@ function addparams()
         name = "MIDI note length (s)",
         controlspec = controlspec.new(0.01, 10, 'exp', 0.01, 0.1, "secs", 0.01, false)
     }
-    
+
     -- Run all actions
     params:bang()
 end
