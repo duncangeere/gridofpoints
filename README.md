@@ -1,19 +1,21 @@
 # gridofpoints
 
-Eight notes, sixteen timbres. A simple, well-commented Norns script for turning Grid into a quantized keyboard.
+Eight notes, sixteen timbres. A simple, well-commented Norns script for turning a Grid into a quantized keyboard.
 
 - e2: change root note
 - e3: change scale
 - k2: up a fifth
 - k3: down a fifth
 
-## Grid (required)
+## grid (required)
 
 - press a key to make beautiful sounds
 - left/right position controls pitch
 - up/down position controls timbre / midi CC
+- top row lets you save and load root/scale combinations
+- long press to save, short press to load
 
-## Crow (optional)
+## crow (optional)
 
 - out1: v/oct
 - out2: gate
@@ -28,11 +30,11 @@ Find it in the Maiden project manager
 
 If you get an 'error: init' on load, then make sure you have a Grid plugged in. The script doesn't function without one. If you have a Grid plugged in and you're still seeing this error then post below with details of what Grid you're using and how it's connected to your Norns.
 
-## Version history
+## version history
 
 ### v1.9
 
-A few changes. First and foremost is a new engine that crossfades between sine and square on the y-axis. You can now tweak the exact engine parameters in the params menu too. In addition, the k2 and k3 buttons now move in fifths rather than octaves, for greater performability. Finally, the top row of the grid is now taken up by a row of preset note/scale combinations that you can switch between. Long press to save, short press to load. The first preset is populated with a C minor pentatonic scale by default.
+Some substantial changes! First and foremost is a new engine that crossfades between sine and square on the y-axis. You can now tweak the exact engine parameters in the params menu too. In addition, the k2 and k3 buttons now move in fifths rather than octaves, for greater performability. Finally, the top row of the grid is now taken up by a row of note/scale combinations that you can switch between. Long press (two seconds) to save, short press to load. The first button is populated with a C minor pentatonic scale by default.
 
 ### v1.8
 
