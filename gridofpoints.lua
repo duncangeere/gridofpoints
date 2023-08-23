@@ -419,13 +419,12 @@ end
 function incantation()
     spell = clock.run(function()
         while true do
-            clock.sleep(math.random(10))
+            clock.sleep(math.random(8))
             rndx = math.random(cols)
             rndy = math.random(rows)
             playnote(rndx, rndy)
             remember(rndx, rndy)
             grid_dirty = true
-            clock.sleep(math.random())
             -- End gate crow
             crow.output[2].volts = 0
         end
