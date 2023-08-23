@@ -25,7 +25,7 @@
 -- > out3: -5V-5V on y-axis
 -- > out4: 0-10V on y-axis
 --
-engine.name = "PolyPerc" -- Pick synth engine
+engine.name = "GridofPoints" -- Pick synth engine
 
 -- Init grid
 g = grid.connect()
@@ -193,13 +193,14 @@ end
 
 function playnote(x, y)
     -- Play a note
-    engine.cutoff(cutoffs[1 + rows - y])
+    params:set("crossfade",(util.linexp(1,8,0.001,1,y)))
+    
     engine.hz(notes_freq[x])
 
     -- Output gate crow
     crow.output[1].volts = (notes_nums[x] - 48) / 12
-    crow.output[3].volts = map(y, 1, rows, 5, -5)
-    crow.output[4].volts = map(y, 1, rows, 10, 0)
+    crow.output[3].volts = util.linlin(1, rows, 5, -5,y)
+    crow.output[4].volts = util.linlin(1, rows, 10, 0,y)
     crow.output[2].volts = 0
     crow.output[2].volts = 5
 
@@ -208,7 +209,7 @@ function playnote(x, y)
         -- send MIDI CC
         my_midi:cc(
             params:get("midi_cc"),
-            math.floor(map(y, rows, 1, 0, 127)),
+            math.floor(util.linlin(rows, 1, 0, 127,y)),
             params:get("midi_channel")
         )
         -- send MIDI note
@@ -218,7 +219,72 @@ end
 
 -- All the parameters
 function addparams()
-    -- Root Note
+    
+    -- Engine
+    params:add_separator("Engine")
+    
+    ---- Engine parameters
+    params:add {
+        type = "control",
+        id = "pulsewidth", name = "pulse width",
+        -- controlspec.new(min, max, warp, step, default, units, quantum, wrap)
+        controlspec = controlspec.new(0.01, 0.99, 'lin', 0.01, 0.5, "", 0.01/(0.99-0.01), false),
+        action = function(x) engine.pw(x) end
+    }
+    
+    params:add {
+        type = "control",
+        id = "cutoff", name = "filter cutoff",
+        --controlspec = controlspec.FREQ,
+        controlspec = controlspec.new(20, 20000, 'exp', 0, 2000, "Hz"),
+        action = function(x) engine.cutoff(x) end
+    }
+    
+    params:add {
+        type = "control",
+        id = "db", name = "db",
+        -- controlspec.new(min, max, warp, step, default, units, quantum, wrap)
+        --controlspec = controlspec.new(-96, 32, 'lin', 0.1, -6, "", 0.1/(32+96), false),
+        controlspec = controlspec.new(-96, 32, 'lin', 1, -6, 'db', 1/(32+96), false),
+        action = function(x) engine.db(x) end
+    }
+    
+    params:add {
+        type = "control",
+        id = "gain", name = "filter res gain",
+        -- controlspec.new(min, max, warp, step, default, units, quantum, wrap)
+        controlspec = controlspec.new(0, 4, 'lin', 0.1, 2, "", 0.1/(4-0), false),
+        action = function(x) engine.gain(x) end
+    }
+    
+    params:add {
+        type = "control",
+        id = "release", name = "release",
+        -- controlspec.new(min, max, warp, step, default, units, quantum, wrap)
+        controlspec = controlspec.new(0.1, 10, 'exp', 0.05, 0.5, "s", 0.01/(10-0.1), false),
+        action = function(x) engine.release(x) end
+    }
+    
+    params:add {
+        type = "control",
+        id = "pan", name = "pan",
+        -- controlspec.new(min, max, warp, step, default, units, quantum, wrap)
+        controlspec = controlspec.new(-1, 1, 'lin', 0.01, 0, "", 0.01, false),
+        action = function(x) engine.pan(x) end
+    }
+    
+    params:add {
+        type = "control",
+        id = "crossfade", name = "osc crossfade",
+        -- controlspec.new(min, max, warp, step, default, units, quantum, wrap)
+        controlspec = controlspec.new(0, 1, 'lin', 0.01, 0.5, "", 0.01, false),
+        action = function(x) engine.crossfade(x) end
+    }
+    
+    -- Quantiser
+    params:add_separator("Quantiser")
+  
+    ---- Root Note
     params:add {
         type = "number",
         id = "root_note",
@@ -232,7 +298,7 @@ function addparams()
         action = function() build_scale() end
     }
 
-    -- Scale
+    ---- Scale
     scale_names = {}
     for i = 1, #musicutil.SCALES do
         table.insert(scale_names, musicutil.SCALES[i].name)
@@ -250,7 +316,7 @@ function addparams()
     -- MIDI
     params:add_separator("MIDI")
 
-    -- MIDI channel number
+    ---- MIDI channel number
     params:add {
         type = "number",
         id = "midi_channel",
@@ -260,7 +326,7 @@ function addparams()
         default = 1
     }
 
-    -- MIDI CC number
+    ---- MIDI CC number
     params:add {
         type = "number",
         id = "midi_cc",
@@ -270,13 +336,16 @@ function addparams()
         default = 1
     }
 
-    -- MIDI note length
+    ---- MIDI note length
     params:add {
         type = "control",
         id = "midi_notelength",
         name = "MIDI note length (s)",
         controlspec = controlspec.new(0.01, 10, 'exp', 0.01, 0.1, "secs", 0.01, false)
     }
+    
+    -- Run all actions
+    params:bang()
 end
 
 -- Build the scale
@@ -330,22 +399,6 @@ function redraw_clock()
             -- Refresh the grid
             g:refresh()
         end
-    end
-end
-
--- Function to map values from one range to another
-function map(n, start, stop, newStart, newStop, withinBounds)
-    local value = ((n - start) / (stop - start)) * (newStop - newStart) +
-        newStart
-
-    -- // Returns basic value
-    if not withinBounds then return value end
-
-    -- // Returns values constrained to exact range
-    if newStart < newStop then
-        return math.max(math.min(value, newStop), newStart)
-    else
-        return math.max(math.min(value, newStart), newStop)
     end
 end
 
