@@ -65,11 +65,8 @@ function init()
         cols = g.cols
     end
 
-    -- Fill up the presets table
-    -- Default first preset is C minor pentatonic, feel free to replace this with whatever you want
-    table.insert(presets, { 48, 12 })
-
-    -- The rest are all zeros
+    -- Fill up the presets
+    table.insert(presets, { 60, 12 })
     for i = 2, cols do
         table.insert(presets, { 0, 0 })
     end
@@ -213,13 +210,13 @@ end
 
 -- Key functions
 function key(n, z)
-    -- KEY2 down one octave
+    -- KEY2 down one fifth
     if n == 2 and z == 1 then
         params:set("root_note", params:get("root_note") - 7)
         build_scale()
     end
 
-    -- KEY3 up one octave
+    -- KEY3 up one fifth
     if n == 3 and z == 1 then
         params:set("root_note", params:get("root_note") + 7)
         build_scale()
@@ -230,6 +227,9 @@ end
 
 -- Encoder functions
 function enc(n, d)
+    -- ENC 1 select octave
+    if n == 1 then params:set("root_note", params:get("root_note") + d * 12) end
+
     -- ENC 2 select root note
     if n == 2 then params:set("root_note", params:get("root_note") + d) end
 
