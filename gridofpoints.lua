@@ -429,6 +429,7 @@ function addparams()
         options = { "Yes", "No" },
         default = 2
     }
+
     -- MIDI
     params:add_separator("MIDI")
 
