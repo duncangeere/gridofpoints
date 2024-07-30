@@ -249,7 +249,14 @@ end
 
 function playnote(x, y)
     -- Play a note
-    params:set("crossfade", (util.linexp(2, rows, 1, 0.001, y)))
+    if params:get("yaxis") == 1 then
+        params:set("crossfade", (util.linexp(2, rows, 1, 0.001, y)))
+    elseif params:get("yaxis") == 2 then
+        params:set("release", (util.linexp(2, rows, 3, 0.3, y)))
+    elseif params:get("yaxis") == 3 then
+        params:set("cutoff", (util.linexp(2, rows, 20000, 200, y)))
+    end
+    
 
     engine.hz(notes_freq[x])
 
@@ -295,7 +302,6 @@ function addparams()
     params:add {
         type = "control",
         id = "cutoff", name = "filter cutoff",
-        --controlspec = controlspec.FREQ,
         controlspec = controlspec.new(20, 20000, 'exp', 0, 2000, "Hz"),
         action = function(x) engine.cutoff(x) end
     }
@@ -304,7 +310,6 @@ function addparams()
         type = "control",
         id = "db", name = "db",
         -- controlspec.new(min, max, warp, step, default, units, quantum, wrap)
-        --controlspec = controlspec.new(-96, 32, 'lin', 0.1, -6, "", 0.1/(32+96), false),
         controlspec = controlspec.new(-96, 32, 'lin', 1, -6, 'db', 1 / (32 + 96), false),
         action = function(x) engine.db(x) end
     }
@@ -339,6 +344,14 @@ function addparams()
         -- controlspec.new(min, max, warp, step, default, units, quantum, wrap)
         controlspec = controlspec.new(0, 1, 'lin', 0.01, 0.5, "", 0.01, false),
         action = function(x) engine.crossfade(x) end
+    }
+
+    params:add {
+        type = "option",
+        id = "yaxis",
+        name = "y-axis controls",
+        options = {"crossfade", "release", "filter"},
+        default = 1
     }
 
     -- Quantiser
