@@ -479,7 +479,6 @@ function redraw_clock()
 
         -- Grid display
         if grid_dirty then
-            -- Light the LEDs in the memory
 
             -- Clear the grid
             g:all(0)
