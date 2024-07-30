@@ -388,6 +388,47 @@ function addparams()
     }
 
     -- Magic Mode
+    params:add_separator("Magic Mode (press corners)")
+    
+    ---- Jitter
+    params:add_number(
+        "jitter", -- id
+        "Jitter", -- name
+        0, -- min
+        100, -- max
+        0, -- default
+        function(param) return param:get().."%" end, -- formatter
+        false -- wrap
+    )
+
+    ---- Probability
+    params:add_number(
+        "probability", -- id
+        "Probability", -- name
+        0, -- min
+        100, -- max
+        60, -- default
+        function(param) return param:get().."%" end, -- formatter
+        false -- wrap
+    )
+
+    ---- Clock multiplication
+    params:add {
+        type = "option",
+        id = "magicmult",
+        name = "Clock multiplier",
+        options = mults[1],
+        default = 3
+    }
+
+    ---- Legacy magic
+    params:add {
+        type = "option",
+        id = "magic_legacy",
+        name = "Legacy magic mode?",
+        options = { "Yes", "No" },
+        default = 2
+    }
     -- MIDI
     params:add_separator("MIDI")
 
