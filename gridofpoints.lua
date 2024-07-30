@@ -261,7 +261,7 @@ function playnote(x, y)
     engine.hz(notes_freq[x])
 
     -- Output gate crow
-    crow.output[1].volts = (notes_nums[x] - 48) / 12
+    crow.output[1].volts = ((notes_nums[x] - 48) / 12)-1
     crow.output[3].volts = util.linlin(2, rows, 5, -5, y)
     crow.output[4].volts = util.linlin(2, rows, 10, 0, y)
     crow.output[2].volts = 0
