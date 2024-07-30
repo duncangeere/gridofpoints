@@ -73,7 +73,7 @@ function init()
     end
 
     -- Fill up the presets
-    table.insert(presets, { 60, 12 })
+    table.insert(presets, { 48, 12 })
     for i = 2, cols do
         table.insert(presets, { 0, 0 })
     end
@@ -365,7 +365,7 @@ function addparams()
         name = "root note",
         min = 0,
         max = 127,
-        default = math.random(50, 60),
+        default = math.random(40, 50),
         formatter = function(param)
             return musicutil.note_num_to_name(param:get(), true)
         end,
@@ -388,7 +388,7 @@ function addparams()
     }
 
     -- Magic Mode
-    params:add_separator("Magic Mode (press corners)")
+    params:add_separator("Magic Mode")
     
     ---- Jitter
     params:add_number(
@@ -396,7 +396,7 @@ function addparams()
         "Jitter", -- name
         0, -- min
         100, -- max
-        0, -- default
+        8, -- default
         function(param) return param:get().."%" end, -- formatter
         false -- wrap
     )
@@ -462,7 +462,7 @@ function addparams()
     }
 
     --- just friends
-    params:add_separator("just friends")
+    params:add_separator("Just Friends")
     params:add_option("use_jf", "use Just Friends", { "Yes", "No" }, 1)
     params:set_action("use_jf", function(value)
         if value == 1 then
