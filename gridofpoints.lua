@@ -49,6 +49,7 @@ function init()
     memory = {};
     presets = {};
     preset_clocks = {};
+    grid_highlights = {};
     current_preset = 0;
 
     screen_dirty = true;
@@ -423,6 +424,12 @@ function build_scale()
         params:get("scale"), cols)                        -- builds scale
     notes_freq = musicutil.note_nums_to_freqs(notes_nums) -- converts note numbers to an array of frequencies
 
+    -- Highlight the root notes
+    for i = 1, #notes_nums do
+        grid_highlights[i] = musicutil.note_num_to_name(notes_nums[i]) == musicutil.note_num_to_name(notes_nums[1]) and true or false
+    end
+    
+    grid_dirty = true
     screen_dirty = true
 end
 
@@ -460,21 +467,32 @@ function redraw_clock()
         -- Grid display
         if grid_dirty then
             -- Light the LEDs in the memory
+
+            -- Clear the grid
             g:all(0)
+
+            --- Light the root notes
+            for i = 1, cols do
+                for j = 1, rows do
+                    g:led(i, j, grid_highlights[i] and 2 or 0)
+                end
+            end
+            
+            -- Light the remembered notes
             for i = 1, #memory do
                 g:led(memory[i].x, memory[i].y, memory[i].level)
             end
 
-            -- Light the preset LEDs
+            -- Light the presets
             for i = 1, cols do
                 if (presets[i][1] > 0 and presets[i][2] > 0) then
                     g:led(i, 1, 4) -- mid colour for saved presets
                 else
-                    g:led(i, 1, 1) -- dimmer colour for empty presets
+                    g:led(i, 1, 2) -- dimmer colour for empty presets
                 end
             end
 
-            -- Light the current preset
+            -- Light the current preset bright
             if current_preset > 0 then
                 g:led(current_preset, 1, 8); -- bright colour for selected preset
             end
