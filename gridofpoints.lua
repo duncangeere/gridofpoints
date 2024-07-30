@@ -61,6 +61,7 @@ function init()
     bottomleft = false;
     bottomright = false;
     magic = false;
+    mults = {{ "0.25x", "0.5x", "1x", "2x", "4x" },{ 0.25, 0.5, 1, 2, 4 }};
 
     -- Default row and column numbers
     if g.device == nil then
@@ -386,6 +387,7 @@ function addparams()
         action = function() build_scale() end -- update the scale when it's changed
     }
 
+    -- Magic Mode
     -- MIDI
     params:add_separator("MIDI")
 
@@ -533,14 +535,28 @@ end
 function incantation()
     spell = clock.run(function()
         while true do
-            clock.sync(math.random(8))
-            rndx = math.random(cols)
-            rndy = math.random(2, rows)
-            playnote(rndx, rndy)
-            remember(rndx, rndy)
-            grid_dirty = true
-            -- End gate crow
-            crow.output[2].volts = 0
+            -- Legacy magic mode
+            if params:get("magic_legacy") == 1 then
+                clock.sync(math.random(8))
+            
+                -- Modern magic mode (science)
+            else
+                -- Need to handle case where jitter is zero
+                local jitter_param = params:get("jitter") / 100
+                local jitter = jitter_param > 0 and math.random() * jitter_param or 0
+                
+                -- Then do the jitterbug
+                clock.sync(1/mults[2][params:get("magicmult")], jitter)
+            end 
+            if (math.random(100) < params:get("probability")) then
+                rndx = math.random(cols)
+                rndy = math.random(2, rows)
+                playnote(rndx, rndy)
+                remember(rndx, rndy)
+                grid_dirty = true
+                -- End gate crow
+                crow.output[2].volts = 0
+            end
         end
     end)
 end
