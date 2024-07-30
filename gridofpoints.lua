@@ -36,6 +36,11 @@ g = grid.connect()
 -- Init midi
 if midi.devices ~= nil then my_midi = midi.connect() end
 
+-- Init jf
+local function use_jf()
+    return params:get("use_jf") == 1
+  end
+
 -- Init function
 function init()
     -- Import musicutil library: https://monome.org/docs/norns/reference/lib/musicutil
@@ -265,6 +270,11 @@ function playnote(x, y)
         -- send MIDI note
         play_midi_note(notes_nums[x] - 12, params:get("midi_notelength"))
     end
+
+    -- JF
+    if use_jf() then
+        crow.ii.jf.play_note(((notes_nums[x] - 48) / 12)-1, util.linlin(2, rows, 5, 1, y))
+    end
 end
 
 -- All the parameters
@@ -392,6 +402,16 @@ function addparams()
         name = "MIDI note length (s)",
         controlspec = controlspec.new(0.01, 10, 'exp', 0.01, 0.1, "secs", 0.01, false)
     }
+
+    --- just friends
+    params:add_separator("just friends")
+    params:add_option("use_jf", "use Just Friends", { "Yes", "No" }, 1)
+    params:set_action("use_jf", function(value)
+        if value == 1 then
+            crow.ii.pullup(true)
+            crow.ii.jf.mode(1)
+        end
+    end)
 
     -- Run all actions
     params:bang()
