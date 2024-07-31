@@ -59,6 +59,9 @@ Third is that gridofpoints now supports i2c connections to Just Friends. It's on
 
 Finally, the grid now shows you where the octaves are in your chosen scale with slightly brighter LEDs. This makes it much easier to play the notes you want and not the ones you don't.
 
+### v1.91
+Very small update that adds back the ability to quickly change octave - but this time with E1. So now you have three ways to change the root note - in fifths with K2 and K3, in octaves in E1, and chromatically with E2.
+
 ### v1.9
 
 Some substantial changes! First and foremost is a new engine that crossfades between sine and square on the y-axis. You can now tweak the exact engine parameters in the params menu too. In addition, the k2 and k3 buttons now move in fifths rather than octaves, for greater performability. Finally, the top row of the grid is now taken up by a row of note/scale combinations that you can switch between. Long press (two seconds) to save, short press to load. The first button is populated with a C minor pentatonic scale by default.
