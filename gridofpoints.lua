@@ -7,6 +7,7 @@
 -- > k2: up a fifth
 -- > k3: down a fifth
 --
+-- > e1: change root octave
 -- > e2: change root note
 -- > e3: change scale
 --
@@ -27,6 +28,8 @@
 -- > out2: gate
 -- > out3: -5V-5V on y-axis
 -- > out4: 0-10V on y-axis
+-- 
+-- > Optional: JF, MIDI
 --
 engine.name = "GridofPoints" -- Pick synth engine
 

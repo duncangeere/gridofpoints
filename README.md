@@ -11,7 +11,7 @@ Eight notes, sixteen timbres. A simple, well-commented Norns script for turning 
 
 - press a key to make beautiful sounds
 - left/right position controls pitch
-- up/down position controls timbre / midi CC
+- up/down position controls timbre (select in parameters)
 - top row lets you save and load root/scale combinations
 - long press to save, short press to load
 
@@ -22,6 +22,21 @@ Eight notes, sixteen timbres. A simple, well-commented Norns script for turning 
 - out3: -5V to 5V on up/down axis
 - out4: 0 to 10V on up/down axis
 
+## MIDI (optional)
+
+- left/right position controls MIDI pitch
+- up/down position controls MIDI CC
+- Note length can be adjusted in parameters
+
+## Just Friends (optional)
+
+Connect to Crow with i2c cable
+
+- left/right position controls pitch
+- up/down position controls level
+
+Pro tip: Crow outputs 3/4 can be used to allow up/down position to modulate other parameters.
+
 ## install
 
 Find it in the Maiden project manager
@@ -31,6 +46,18 @@ Find it in the Maiden project manager
 If you get an 'error: init' on load, then make sure you have a Grid plugged in. The script doesn't function without one. If you have a Grid plugged in and you're still seeing this error then post below with details of what Grid you're using and how it's connected to your Norns.
 
 ## version history
+
+### v2.0
+
+There are four major feature additions in version 2.0 of gridofpoints.
+
+First is that you can now choose which parameter is controlled on the y-axis of the grid. You can crossfade between sine and square waves, adjust the release time, or control the cutoff of a low-pass filter.
+
+Second is that the generative "magic mode" now has adjustable controls for jitter, probability and clock multiplication in parameters. Prefer the old approach? Turn on "Legacy magic mode" in parameters.
+
+Third is that gridofpoints now supports i2c connections to Just Friends. It's on by default, but you can turn it off if you want to in the parameters menu.
+
+Finally, the grid now shows you where the octaves are in your chosen scale with slightly brighter LEDs. This makes it much easier to play the notes you want and not the ones you don't.
 
 ### v1.9
 
