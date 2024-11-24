@@ -64,6 +64,7 @@ function init()
     bottomleft = false;
     bottomright = false;
     mults = {{ "0.25x", "0.5x", "1x", "2x", "4x" },{ 0.25, 0.5, 1, 2, 4 }};
+    magicopts = {"false", "true"}
 
     -- Default row and column numbers
     if g.device == nil then
@@ -158,10 +159,10 @@ function g.key(x, y, z)
         end
 
         if (topleft and bottomleft and topright and bottomright) then
-            if params:get("magic") == 0 then
-                params:set("magic", 1);
+            if params:get("magic") == 1 then
+                params:set("magic", 2);
             else
-                params:set("magic", 0);
+                params:set("magic", 1);
             end
         end
 
@@ -387,16 +388,17 @@ function addparams()
 
     -- Magic Mode
     params:add_separator("Magic Mode")
-    
-    params:add_binary(
-      "magic", -- id
-      "Magic mode on?", -- name
-      "toggle", -- behavior
-      0 -- default
-      )
+      
+    params:add {
+        type = "option",
+        id = "magic",
+        name = "Magic mode on?",
+        options = magicopts,
+        default = 1
+    }
       
     params:set_action("magic", function(value)
-        if value == 1 then
+        if value == 2 then
             print("the magic begins...")
             incantation()
         else 
