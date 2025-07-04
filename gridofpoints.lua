@@ -1,7 +1,7 @@
 -- grid of points
--- v2.01 @duncangeere
+-- v2.1 @duncangeere
 --
--- sixteen notes, eight timbres
+-- sixteen notes, seven timbres
 -- with apologies to Liz Harris
 --
 -- > k2: up a fifth
