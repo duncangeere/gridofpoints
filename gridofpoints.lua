@@ -31,7 +31,12 @@
 -- 
 -- > Optional: JF, MIDI
 --
-engine.name = "GridofPoints" -- Pick synth engine
+
+-- Import json library: https://github.com/rxi/json.lua
+local json = include("lib/json")
+
+-- Pick synth engine
+engine.name = "GridofPoints"
 
 -- Init grid
 g = grid.connect()
@@ -50,7 +55,7 @@ function init()
     musicutil = require("musicutil")
 
     memory = {};
-    presets = {};
+    keys = {};
     preset_clocks = {};
     grid_highlights = {};
     current_preset = 0;
@@ -75,10 +80,40 @@ function init()
         cols = g.cols
     end
 
-    -- Fill up the presets
-    table.insert(presets, { 48, 12 })
-    for i = 2, cols do
-        table.insert(presets, { 0, 0 })
+    -- Init keys
+    -- Create the keys file if it doesn't exist
+    if not util.file_exists(_path.data .. "gridofpoints/keys.json") then
+        -- Fill up the keys table with default values
+        table.insert(keys, { 48, 12 })
+        for i = 2, cols do
+            table.insert(keys, { 0, 0 })
+        end
+
+        -- Save the keys to the data folder
+        local file = io.open(_path.data .. "gridofpoints/keys.json", "w")
+        if file then
+            file:write(json.encode(keys))
+            file:close()
+            print("Keys saved to data folder.")
+        else
+            print("Error saving keys to data folder.")
+        end
+    else
+        -- Load the keys from the data folder
+        local file = io.open(_path.data .. "gridofpoints/keys.json", "r")
+        if file then
+            local content = file:read("*a")
+            keys = json.decode(content)
+            file:close()
+            print("Keys loaded from data folder.")
+            
+            -- Print the keys to the console
+            for index, data in ipairs(keys) do
+                print(index .. ": Root Note: " .. data[1] .. ", Scale: " .. data[2])
+            end
+        else
+            print("Error loading keys from data folder.")
+        end
     end
 
     -- Add engine parameters
@@ -173,10 +208,21 @@ function g.key(x, y, z)
                 -- Wait for two seconds
                 clock.sleep(2);
                 -- Then save the preset in that slot
-                presets[x][1] = params:get("root_note");
-                presets[x][2] = params:get("scale");
-            end)
-        else
+                keys[x][1] = params:get("root_note");
+                keys[x][2] = params:get("scale");
+
+                -- And save the keys to the data folder
+                local file = io.open(_path.data .. "gridofpoints/keys.json", "w")
+                if file then
+                    file:write(json.encode(keys))
+                    file:close()
+                    print("Keys saved to data folder.")
+                else
+                    print("Error saving keys to data folder.")
+                end
+                    end)
+                else
+
             -- remember the key pressed
             remember(x, y)
 
@@ -203,11 +249,11 @@ function g.key(x, y, z)
         if (y == 1) then
             -- Cancel the longpress tracking clock
             clock.cancel(preset_clocks[x]);
-            -- Check if there's a preset in that slot
-            if (presets[x][1] > 0 and presets[x][2] > 0) then
+            -- Check if there's a key in that slot
+            if (keys[x][1] > 0 and keys[x][2] > 0) then
                 -- Set the root note and scale from that preset
-                params:set("root_note", presets[x][1])
-                params:set("scale", presets[x][2])
+                params:set("root_note", keys[x][1])
+                params:set("scale", keys[x][2])
                 current_preset = x;
             end
         end
@@ -558,12 +604,12 @@ function redraw_clock()
                 g:led(memory[i].x, memory[i].y, memory[i].level)
             end
 
-            -- Light the presets
+            -- Light the keys
             for i = 1, cols do
-                if (presets[i][1] > 0 and presets[i][2] > 0) then
-                    g:led(i, 1, 4) -- mid colour for saved presets
+                if (keys[i][1] > 0 and keys[i][2] > 0) then
+                    g:led(i, 1, 4) -- mid colour for saved keys
                 else
-                    g:led(i, 1, 2) -- dimmer colour for empty presets
+                    g:led(i, 1, 2) -- dimmer colour for empty keys
                 end
             end
 
