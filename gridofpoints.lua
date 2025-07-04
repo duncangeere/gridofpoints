@@ -303,7 +303,17 @@ function playnote(x, y)
         params:set("cutoff", (util.linexp(2, rows, 20000, 200, y)))
     end
     
+    -- Figure out pan position
+    panning = params:get("pan") + (params:get("pandom") * (2 * math.random() - 1))
 
+    if panning < -1 then
+        panning = -1
+    elseif panning > 1 then
+        panning = 1
+    end
+
+    -- Play the note
+    engine.pan(panning)
     engine.hz(notes_freq[x])
 
     -- Output gate crow
@@ -382,6 +392,13 @@ function addparams()
         -- controlspec.new(min, max, warp, step, default, units, quantum, wrap)
         controlspec = controlspec.new(-1, 1, 'lin', 0.01, 0, "", 0.01, false),
         action = function(x) engine.pan(x) end
+    }
+
+    params:add {
+        type= "control",
+        id = "pandom", name = "random pan maximum",
+        -- controlspec.new(min, max, warp, step, default, units, quantum, wrap)
+        controlspec = controlspec.new(0, 1, 'lin', 0.01, 0, "", 0.01, false),
     }
 
     params:add {
