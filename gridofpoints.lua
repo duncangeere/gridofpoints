@@ -207,6 +207,8 @@ function g.key(x, y, z)
             preset_clocks[x] = clock.run(function()
                 -- Wait for two seconds
                 clock.sleep(2);
+                
+                -- If the key is still pressed after two seconds
                 -- Then save the preset in that slot
                 keys[x][1] = params:get("root_note");
                 keys[x][2] = params:get("scale");
