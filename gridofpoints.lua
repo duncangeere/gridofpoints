@@ -461,7 +461,7 @@ function addparams()
         "Jitter", -- name
         0, -- min
         100, -- max
-        8, -- default
+        0, -- default
         function(param) return param:get().."%" end, -- formatter
         false -- wrap
     )
