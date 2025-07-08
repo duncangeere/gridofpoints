@@ -6,23 +6,25 @@
 --
 -- > k2: up a fifth
 -- > k3: down a fifth
+-- > k1+k3: toggle magic mode
 --
 -- > e1: change root octave
 -- > e2: change root note
 -- > e3: change scale
 --
--- Required:
--- Grid
+-- Recommended:
+-- grid
 --
 -- > left/right axis = pitch,
 -- > up/down axis = timbre
 -- > up/down axis = MIDI CC
+-- > up/down axis = crow volts
 -- > top row = root/scale presets
 -- > long press to save
 -- > short press to load
 --
 -- Optional:
--- Crow
+-- crow
 --
 -- > out1: v/oct
 -- > out2: gate
