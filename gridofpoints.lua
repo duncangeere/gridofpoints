@@ -70,6 +70,7 @@ function init()
     bottomright = false;
     mults = {{ "0.25x", "0.5x", "1x", "2x", "4x" },{ 0.25, 0.5, 1, 2, 4 }};
     magicopts = {"false", "true"}
+    k1down = false;
 
     -- Default row and column numbers
     if g.device == nil then
@@ -129,77 +130,60 @@ end
 
 -- Visuals
 function redraw()
-    if grid_connected then
-        -- clear the screen
-        screen.clear()
+    
+    -- clear the screen
+    screen.clear()
 
-        -- text
-        screen.aa(1)
+    -- text
+    screen.aa(1)
 
-        -- root note
-        screen.font_size(65)
-        screen.font_face(19)
-        screen.level(2)
+    -- root note
+    screen.font_size(50)
+    screen.font_face(19)
+    screen.level(4)
 
-        screen.move(2, 56)
-        screen.text(musicutil.note_num_to_name(params:get("root_note"), true))
+    screen.move(2, 45)
+    screen.text(musicutil.note_num_to_name(params:get("root_note"), true))
 
-        -- scale
-        screen.font_size(10)
-        screen.font_face(4)
+    -- scale
+    screen.font_size(8)
+    screen.font_face(1)
+    screen.level(15)
+
+    screen.move(2, 60)
+    screen.text(scale_names[params:get("scale")])
+
+    if params:get("magic") == 2 then
+        -- Magic mode
+        screen.font_size(8)
+        screen.font_face(1)
         screen.level(15)
 
         screen.move(124, 60)
-        screen.text_right(scale_names[params:get("scale")])
-
-        -- trigger a screen update
-        screen.update()
-    else
-        -- Warn that grid is not connected
-        screen.clear()
-        screen.aa(1)
-        screen.font_size(10)
-        screen.font_face(4)
-        screen.move(64, 28)
-        screen.text_center("No grid detected.")
-        screen.move(64, 38)
-        screen.text_center("Please connect a grid.")
-        screen.update()
+        screen.text_right("◢")
     end
+
+    if grid_connected then
+        -- Warn that grid is not connected
+        screen.font_size(8)
+        screen.font_face(1)
+        screen.level(15)
+
+        screen.move(124, 10)
+        screen.text_right("▦")
+
+        -- Show grid presses
+        
+        
+    end
+    -- trigger a screen update
+    screen.update()
 end
 
 -- Grid functions
 function g.key(x, y, z)
-    -- When you press it...
+    
     if z == 1 then -- if we press any grid key
-        -- Magic mode tracking
-        if (x == 1 and y == 2) then
-            topleft = true;
-            -- print("top left!")
-        end
-
-        if (x == 1 and y == rows) then
-            bottomleft = true;
-            -- print("bottom left!")
-        end
-
-        if (x == cols and y == 2) then
-            topright = true;
-            -- print("top right!")
-        end
-
-        if (x == cols and y == rows) then
-            bottomright = true;
-            -- print("bottom right!")
-        end
-
-        if (topleft and bottomleft and topright and bottomright) then
-            if params:get("magic") == 1 then
-                params:set("magic", 2);
-            else
-                params:set("magic", 1);
-            end
-        end
 
         -- If the press is on the first row of the grid
         if (y == 1) then
@@ -207,7 +191,7 @@ function g.key(x, y, z)
             preset_clocks[x] = clock.run(function()
                 -- Wait for two seconds
                 clock.sleep(2);
-                
+
                 -- If the key is still pressed after two seconds
                 -- Then save the preset in that slot
                 keys[x][1] = params:get("root_note");
@@ -270,11 +254,36 @@ function key(n, z)
         build_scale()
     end
 
-    -- KEY3 up one fifth
+    -- KEY3
     if n == 3 and z == 1 then
-        params:set("root_note", params:get("root_note") + 7)
-        build_scale()
+        -- Check if key 1 is down
+        if k1down then
+            -- if magic mode is on
+            if params:get("magic") == 2 then
+                -- turn it off
+                params:set("magic", 1)
+            else
+                -- turn it on
+                params:set("magic", 2)
+            end
+        else 
+            -- if k1 is not down
+            -- go up a fifth
+            params:set("root_note", params:get("root_note") + 7)
+            build_scale()
+        end
     end
+
+    -- KEY1 toggle
+    if n == 1 and z == 1 then
+        k1down = true
+    end
+
+    if n == 1 and z == 0 then
+        k1down = false
+    end
+
+    
 
     screen_dirty = true
 end
@@ -472,6 +481,7 @@ function addparams()
             clock.cancel(spell)
           end
         end
+        screen_dirty = true
     end)
     
     ---- Jitter
