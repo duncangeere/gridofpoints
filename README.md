@@ -47,6 +47,26 @@ If you get an 'error: init' on load, then make sure you have a Grid plugged in. 
 
 ## version history
 
+### v2.1
+
+Saved parameters are now stored in data/gridofpoints/keys.json, which means you don't lose them if you close the script, and you don't lose them if you delete and reinstall the script either. If you do want to clear your presets, you can delete this file and it'll be recreated with one default (C2 minor pentatonic).
+
+Root note octave is now a parameter alongside root note, so you can map it to a midi controller. Previously this functionality was only available on E1.
+
+Magic mode is no longer activated/deactivated by pressing all four corners of the grid. This was cute, but it made sound and you don't always want to do that in a show. It's now activated with K1+K3 (or a MIDI mapping) instead.
+
+There's a new parameter that adds random panning to both manual and magic mode notes. No longer will your notes all be sitting in one place in the stereo field!
+
+Jitter now defaults to 0. If you're playing beat-synced, this means you'll be locked in from the start. You can always turn it up again, or change the default on your own device if you want to.
+
+I've refactored the UI a little bit. The root note is now smaller, and the scale name uses the default norns font. In the top right, you'll see a ▦ when a grid is plugged in, and in the bottom right you'll see a ø when magic mode is activated.
+
+Last but not least, gridofpoints is now playable without a grid! If you don't have a grid you'll only be able to use magic mode (K1 + K3), but everything else should work great.
+
+### v2.01
+
+For convenience, magic mode is now a parameter that can be MIDI-mapped.
+
 ### v2.0
 
 There are four major feature additions in version 2.0 of gridofpoints.
