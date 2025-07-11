@@ -444,8 +444,32 @@ function addparams()
         formatter = function(param)
             return musicutil.note_num_to_name(param:get(), true)
         end,
-        action = function() build_scale() end
+        action = function() 
+            local root_note = params:get("root_note")
+            local root_octave = math.floor(root_note / 12) - 2
+            params:set("root_octave", root_octave, true)
+            build_scale()
+        end
     }
+
+    params:add {
+        type = "number",
+        id = "root_octave",
+        name = "root octave",
+        min = -2,
+        max = 8,
+        default = 2,
+        action = function() 
+            local root_octave = params:get("root_octave")
+            local root_note = params:get("root_note")
+            local note_within_octave = root_note % 12
+            local new_midi_note = (root_octave + 2) * 12 + note_within_octave
+            params:set("root_note", new_midi_note, true)
+            build_scale()
+        end
+    }
+
+    params:set("root_octave", math.floor(params:get("root_note") / 12) -2, true)
 
     ---- Scale
     scale_names = {}
