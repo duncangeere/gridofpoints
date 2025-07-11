@@ -70,7 +70,7 @@ function init()
     topright = false;
     bottomleft = false;
     bottomright = false;
-    mults = {{ "0.25x", "0.5x", "1x", "2x", "4x" },{ 0.25, 0.5, 1, 2, 4 }};
+    mults = {{ "0.25x", "0.5x", "1x", "2x", "4x"},{ 0.25, 0.5, 1, 2, 4}};
     magicopts = {"false", "true"}
     k1down = false;
 
@@ -162,7 +162,7 @@ function redraw()
         screen.level(15)
 
         screen.move(124, 60)
-        screen.text_right("◢")
+        screen.text_right("ø")
     end
 
     if grid_connected then
