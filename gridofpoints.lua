@@ -1,5 +1,5 @@
 -- grid of points
--- v2.1 @duncangeere
+-- v2.15 @duncangeere
 --
 -- sixteen notes, seven timbres
 -- with apologies to Liz Harris
@@ -24,6 +24,21 @@
 -- > short press to load
 --
 -- Optional:
+-- arc
+--
+-- > button: hold for alt control
+--
+-- > E1: volume
+-- > E2: release
+-- > E3: filter cutoff
+-- > E4: probability
+--
+-- > E1 alt: clock multiplier
+-- > E2 alt: random pan
+-- > E3 alt: filter resonance
+-- > E4 alt: jitter
+--
+-- Optional:
 -- crow
 --
 -- > out1: v/oct
@@ -31,17 +46,15 @@
 -- > out3: -5V-5V on y-axis
 -- > out4: 0-10V on y-axis
 -- 
--- > Optional: JF, MIDI
---
-
--- Import json library: https://github.com/rxi/json.lua
-local json = include("lib/json")
+-- Optional: JF, MIDI
+-- should work as you expect
 
 -- Pick synth engine
 engine.name = "GridofPoints"
 
--- Init grid
+-- Init grid & arc
 g = grid.connect()
+a = arc.connect()
 
 -- Init midi
 if midi.devices ~= nil then my_midi = midi.connect() end
@@ -49,30 +62,41 @@ if midi.devices ~= nil then my_midi = midi.connect() end
 -- Init jf
 local function use_jf()
     return params:get("use_jf") == 1
-  end
+end
 
 -- Init function
 function init()
+    
     -- Import musicutil library: https://monome.org/docs/norns/reference/lib/musicutil
     musicutil = require("musicutil")
+    -- Import json library: https://github.com/rxi/json.lua
+    json = include("lib/json")
 
+    -- Set the engine parameters
     memory = {};
     keys = {};
     preset_clocks = {};
     grid_highlights = {};
     current_preset = 0;
 
+    -- Grid and arc tracking variables
     screen_dirty = true;
     grid_dirty = true;
     grid_connected = false;
+    arc_dirty = true;
+    arc_connected = false;
+    arc_alt = false;
+    k1down = false; -- tracking if norns k1 is down
 
-    topleft = false;
-    topright = false;
-    bottomleft = false;
-    bottomright = false;
+    -- Param variables
     mults = {{ "0.25x", "0.5x", "1x", "2x", "4x"},{ 0.25, 0.5, 1, 2, 4}};
-    magicopts = {"false", "true"}
-    k1down = false;
+    magicopts = {"false", "true"};
+    mult_hundred = 300 -- for arc
+    
+    --- randomness for arc probability
+    rand_prob = {};
+    rand_jit = {};
+    new_rand = true;
 
     -- Default row and column numbers
     if g.device == nil then
@@ -166,18 +190,25 @@ function redraw()
     end
 
     if grid_connected then
-        -- Warn that grid is not connected
+        -- Show that grid is connected
         screen.font_size(8)
         screen.font_face(1)
         screen.level(15)
 
         screen.move(124, 10)
         screen.text_right("▦")
-
-        -- Show grid presses
-        
-        
     end
+
+    if arc_connected then
+        -- Show that arc is connected
+        screen.font_size(8)
+        screen.font_face(1)
+        screen.level(15)
+
+        screen.move(124, 20)
+        screen.text_right("o")
+    end
+
     -- trigger a screen update
     screen.update()
 end
@@ -192,7 +223,7 @@ function g.key(x, y, z)
             -- Start a clock to track long presses
             preset_clocks[x] = clock.run(function()
                 -- Wait for two seconds
-                clock.sleep(2);
+                clock.sleep(1);
 
                 -- If the key is still pressed after two seconds
                 -- Then save the preset in that slot
@@ -306,6 +337,34 @@ function enc(n, d)
     screen_dirty = true
 end
 
+-- Arc functions
+a.key = function(n,z)
+    -- toggle alt on/off when key is pressed
+    arc_alt = z == 1
+    arc_dirty = true
+end
+
+a.delta = function(n, d)
+
+    -- reduce delta sensitivity from parameter
+    d = d/params:get("arc_sens")
+
+    -- If alt is not pressed
+    if not arc_alt then
+        if n == 1 then params:delta("db", d) end
+        if n == 2 then params:delta("release", d * 8) end
+        if n == 3 then params:delta("cutoff", d) end
+        if n == 4 then params:delta("probability", d) end
+    else -- If alt is pressed
+        if n == 1 then delta_mult(d*params:get("arc_sens")) end
+        if n == 2 then params:delta("pandom", d) end
+        if n == 3 then params:delta("gain", d * 0.1) end
+        if n == 4 then params:delta("jitter", d) end
+    end
+
+    arc_dirty = true;
+end
+
 function playnote(x, y)
     -- Play a note
     if params:get("yaxis") == 1 then
@@ -380,7 +439,10 @@ function addparams()
         id = "db", name = "db",
         -- controlspec.new(min, max, warp, step, default, units, quantum, wrap)
         controlspec = controlspec.new(-96, 32, 'lin', 1, -6, 'db', 1 / (32 + 96), false),
-        action = function(x) engine.db(x) end
+        action = function(x) 
+            engine.db(x) 
+            arc_dirty = true
+        end
     }
 
     params:add {
@@ -411,7 +473,7 @@ function addparams()
         type= "control",
         id = "pandom", name = "random pan maximum",
         -- controlspec.new(min, max, warp, step, default, units, quantum, wrap)
-        controlspec = controlspec.new(0, 1, 'lin', 0.01, 0, "", 0.01, false),
+        controlspec = controlspec.new(0, 1, 'lin', 0.01, 0.4, "", 0.01, false),
     }
 
     params:add {
@@ -515,11 +577,18 @@ function addparams()
         "jitter", -- id
         "Jitter", -- name
         0, -- min
-        100, -- max
+        30, -- max
         0, -- default
         function(param) return param:get().."%" end, -- formatter
         false -- wrap
     )
+
+    -- Generate a new random table when jitter goes to 0
+    params:set_action("jitter", function(value)
+        if value == 0 then
+            new_rand = true
+        end
+    end)
 
     ---- Probability
     params:add_number(
@@ -532,6 +601,13 @@ function addparams()
         false -- wrap
     )
 
+    -- Generate a new random table when probability goes to 0
+    params:set_action("probability", function(value)
+        if value == 0 then
+            new_rand = true
+        end
+    end)
+
     ---- Clock multiplication
     params:add {
         type = "option",
@@ -540,6 +616,10 @@ function addparams()
         options = mults[1],
         default = 3
     }
+
+    params:set_action("magicmult", function(value)
+        --mult_hundred = value * 100 -- convert to 100s for arc
+    end)
 
     ---- Legacy magic
     params:add {
@@ -591,6 +671,10 @@ function addparams()
         end
     end)
 
+    --- arc sensitivity
+    params:add_separator("Arc")
+    params:add_number("arc_sens", "Sensitivity", 1, 100, 10)
+
     -- Run all actions
     params:bang()
 end
@@ -613,6 +697,13 @@ end
 -- Check if the screen needs redrawing 15 times a second
 function redraw_clock()
     while true do
+
+        -- Regen random numbers if needed
+        if new_rand then
+            fill_rand_tables()
+            new_rand = false
+        end
+
         clock.sleep(1 / 15)
 
         -- Check if grid is connected
@@ -631,6 +722,24 @@ function redraw_clock()
             if g.device == nil then
                 print("grid disconnected!")
                 grid_connected = false
+                screen_dirty = true
+            end
+        end
+
+        -- Check if arc is connected
+        if not arc_connected then
+            if a.device == nil then
+                arc_connected = false
+            else
+                print("arc connected!")
+                arc_connected = true
+                arc_dirty = true
+                screen_dirty = true
+            end
+        else
+            if a.device == nil then
+                print("arc disconnected!")
+                arc_connected = false
                 screen_dirty = true
             end
         end
@@ -675,6 +784,202 @@ function redraw_clock()
 
             -- Refresh the grid
             g:refresh()
+            grid_dirty = false
+        end
+
+        -- Arc display
+        if arc_dirty then
+
+            -- clear all LEDs
+            a:all(0)
+
+            -- set the LEDs for each encoder position
+            for i = 1, 4 do
+                if not arc_alt then
+                    
+                    -- 1 volume
+                    if i == 1 then
+                        --- calculate 0-60 volume
+                        local volume = util.linlin(-96, 32, 0, 60, params:get("db"))
+
+                        -- calculate angle & brightness
+                        local degree = util.linlin(0,60,0,340, volume)
+                        local brightness = util.linlin(0,60,0,15, volume)
+                        
+                        --- Display it
+                        --- a:segment(ring, from, to, level)
+                        a:segment(i, math.rad(190), math.rad(190+degree), brightness)
+                        a:led(1, 13, 1) -- light up default value
+
+                    end
+
+                    -- 2 release
+                    if i == 2 then
+                        -- calculate 0-10 release
+                        local release = util.linlin(0.1, 10, 0, 60, params:get("release"))
+
+                        -- calculate angle & brightness
+                        local degree = util.linlin(0,60,0,340, release)
+                        local brightness = util.linlin(0,60,0,15, release)
+
+                        -- Display it
+                        a:segment(i, math.rad(190), math.rad(190+degree), brightness)
+
+                        -- Display second markers
+                        for j = 0, 10 do
+                            -- figure out which LED to light up
+                            local led_num = figure_out_release(j)
+                            -- light it up
+                            a:led(i, led_num, 1)
+                        end
+
+                    end
+
+                    -- 3 filter cutoff
+                    if i == 3 then
+                        -- calculate 0-20000 filter cutoff
+                        local cutoff = util.explin(20, 20000, 0, 60, params:get("cutoff"))
+
+                        -- calculate filter resonance for brightness
+                        local resonance = util.linlin(0, 4, 1, 15, params:get("gain"))
+
+                        -- calculate angle & brightness
+                        -- local degree = util.linlin(0,60,0,340, cutoff)
+                        -- Display it
+                        --a:segment(i, math.rad(190), math.rad(190+degree), brightness)
+
+                        -- Display it
+                        for j = 1, cutoff do
+                            -- figure out which LED to light up
+                            local led_num = j + 34
+
+                            -- Brighten it up near the end of the chain
+                            brightness = math.floor(util.linexp(1, cutoff, 1, math.floor(resonance + 0.5), j))
+
+                            -- light it up
+                            a:led(i, led_num, brightness)
+                        end
+                    end
+
+                    -- 4 probability
+                    if i == 4 then
+                        -- calculate 0-100 probability
+                        local probability = util.linlin(0, 100, 0, 64, params:get("probability"))
+                        local brightness = math.floor(util.linlin(0, 100, 0, 15, params:get("probability")))
+
+                        -- fill the arc randomly with bars as the probability increases
+                        for j = 1, probability do
+
+                            -- figure out which LED to light up
+                            local led_num = rand_prob[j]
+
+                            -- light it up
+                            a:led(i, led_num, brightness)
+                        end
+                    end
+
+                elseif arc_alt then
+                    -- 1 clock multiplier
+                    if i == 1 then
+                        -- get the multiplier value
+                        local mult = params:get("magicmult")
+
+                        -- 0.25x
+                        a:led(i, 54, mult == 1 and 15 or 1)
+
+                        -- 0.5x
+                        a:led(i, 58, mult == 2 and 15 or 1)
+                        a:led(i, 59, mult == 2 and 15 or 1)
+
+                        -- 1x
+                        a:led(i, 63, mult == 3 and 15 or 1)
+                        a:led(i, 64, mult == 3 and 15 or 1)
+                        a:led(i, 1, mult == 3 and 15 or 1)
+                        a:led(i, 2, mult == 3 and 15 or 1)
+
+                        -- 2x
+                        for j = 6,13 do
+                            a:led(i, j, mult == 4 and 15 or 1)
+                        end
+
+                        -- 4x
+                        for j = 17,31 do
+                            a:led(i, j, mult == 5 and 15 or 1)
+                        end
+                    end
+
+                    -- 2 random pan
+                    if i == 2 then
+                        -- get the random pan value
+                        local pandom = util.linlin(0,1,0,30,params:get("pandom"))
+
+                        if pandom == 0 then
+                            -- if pandom is 0, light up the top three LEDs
+                            a:led(i, 64, 15)
+                            a:led(i, 1, 15)
+                            a:led(i, 2, 15)
+                            
+                        else
+                        -- light up leds on left and right side of centre
+                            for j = 3, pandom do
+                                a:led(i, j, 15)
+                                a:led(i, 66-j, 15)
+                            end
+                        end
+
+                    end
+
+                    -- 3 filter resonance
+                    if i == 3 then
+                        -- calculate 0-20000 filter cutoff
+                        local cutoff = util.explin(20, 20000, 0, 60, params:get("cutoff"))
+
+                        -- calculate filter resonance for brightness
+                        local resonance = util.linlin(0, 4, 1, 15, params:get("gain"))
+
+                        -- calculate angle & brightness
+                        -- local degree = util.linlin(0,60,0,340, cutoff)
+                        -- Display it
+                        --a:segment(i, math.rad(190), math.rad(190+degree), brightness)
+
+                        -- Display it
+                        for j = 1, cutoff do
+                            -- figure out which LED to light up
+                            local led_num = j + 34
+
+                            -- Brighten it up near the end of the chain
+                            brightness = math.floor(util.linexp(1, cutoff, 1, math.floor(resonance + 0.5), j))
+
+                            -- light it up
+                            a:led(i, led_num, brightness)
+                        end
+                    end
+
+                    -- 4 jitter
+                    if i == 4 then
+                        -- get the jitter value
+                        local jitter = math.floor(util.linlin(0,30,0,64,params:get("jitter")))
+
+                        -- light up all the LEDs a little
+                        for j = 1, 64 do
+                            a:led(i, j, 1)
+                        end
+
+                        -- light up the LEDs randomly based on the jitter value
+                        for j = 1, jitter do
+                            -- figure out which LED to light up
+                            local led_num = rand_jit[j]
+                            -- light it up
+                            a:led(i, led_num, 15)
+                        end
+
+
+                    end
+                end
+            end
+
+            a:refresh()
+            arc_dirty = false
         end
     end
 end
@@ -745,4 +1050,66 @@ function play_midi_note(midi_note, midi_notelength)
             my_midi:note_off(midi_note, 100, params:get("midi_channel"))
         end)
     end
+end
+
+-- Function to tell me which arc LED should be lit up for a given value of the release parameter
+function figure_out_release(val)
+    local quantity = math.floor(util.linexp(0.1, 10, 34, 34+60, val)+0.5)
+    if quantity > 64 then
+        return quantity - 64
+    else
+        return quantity
+    end
+end
+
+-- Function to check if a table contains a specific element
+function table.contains(t, element)
+  for _, value in pairs(t) do
+    if value == element then
+      return true
+    end
+  end
+  return false
+end
+
+-- Fill the random tables with 64 random numbers, without repeats
+function fill_rand_tables()
+
+    -- Clear the tables first
+    rand_prob = {}
+    rand_jit = {}
+
+    -- Fill the rand_prob table with unique random numbers from 1 to 64
+    for i = 1, 64 do
+        local rand_num = math.random(1, 64)
+        -- Check if the number is already in the table
+        while table.contains(rand_prob, rand_num) do
+            rand_num = math.random(1, 64)
+        end
+        -- Add the unique random number to the table
+        table.insert(rand_prob, rand_num)
+    end
+
+    -- Fill the rand_jit table with unique random numbers from 1 to 64
+    for i = 1, 64 do
+        local rand_num = math.random(1, 64)
+        -- Check if the number is already in the table
+        while table.contains(rand_jit, rand_num) do
+            rand_num = math.random(1, 64)
+        end
+        -- Add the unique random number to the table
+        table.insert(rand_jit, rand_num)
+    end
+end 
+
+function delta_mult(d)
+    -- There are 5 clock multipliers
+    -- We can represent these as 100, 200, 300, 400, 500
+    -- We want to use the delta value to change the multiplier
+    -- But it changes too fast
+    -- So we use a large variable to track it, and then round it to the nearest 100
+    mult_hundred = util.clamp(mult_hundred + d, 100, 500)
+    -- Round it to the nearest 100
+    newparam = math.floor(mult_hundred / 100 + 0.5)
+    params:set("magicmult", newparam, true)
 end
