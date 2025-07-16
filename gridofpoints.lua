@@ -3,10 +3,11 @@
 --
 -- sixteen notes, seven timbres
 -- with apologies to Liz Harris
---
+-- 
+-- > k1: toggle alt
 -- > k2: up a fifth
 -- > k3: down a fifth
--- > k1+k3: toggle magic mode
+-- > alt + k3: toggle magic mode
 --
 -- > e1: change root octave
 -- > e2: change root note
@@ -52,9 +53,8 @@
 -- Pick synth engine
 engine.name = "GridofPoints"
 
--- Init grid & arc
+-- Init grid
 g = grid.connect()
-a = arc.connect()
 
 -- Init midi
 if midi.devices ~= nil then my_midi = midi.connect() end
@@ -63,6 +63,9 @@ if midi.devices ~= nil then my_midi = midi.connect() end
 local function use_jf()
     return params:get("use_jf") == 1
 end
+
+-- Init arc
+a = arc.connect()
 
 -- Init function
 function init()
@@ -85,7 +88,6 @@ function init()
     grid_connected = false;
     arc_dirty = true;
     arc_connected = false;
-    arc_alt = false;
     k1down = false; -- tracking if norns k1 is down
 
     -- Param variables
@@ -314,10 +316,10 @@ function key(n, z)
 
     if n == 1 and z == 0 then
         k1down = false
+        
     end
 
-    
-
+    arc_dirty = true
     screen_dirty = true
 end
 
@@ -340,7 +342,7 @@ end
 -- Arc functions
 a.key = function(n,z)
     -- toggle alt on/off when key is pressed
-    arc_alt = z == 1
+    k1down = z == 1
     arc_dirty = true
 end
 
@@ -350,7 +352,7 @@ a.delta = function(n, d)
     d = d/params:get("arc_sens")
 
     -- If alt is not pressed
-    if not arc_alt then
+    if not k1down then
         if n == 1 then params:delta("db", d) end
         if n == 2 then params:delta("release", d * 8) end
         if n == 3 then params:delta("cutoff", d) end
@@ -795,7 +797,7 @@ function redraw_clock()
 
             -- set the LEDs for each encoder position
             for i = 1, 4 do
-                if not arc_alt then
+                if not k1down then
                     
                     -- 1 volume
                     if i == 1 then
@@ -878,7 +880,7 @@ function redraw_clock()
                         end
                     end
 
-                elseif arc_alt then
+                elseif k1down then
                     -- 1 clock multiplier
                     if i == 1 then
                         -- get the multiplier value
