@@ -2,17 +2,31 @@
 
 Sixteen notes, seven timbres. A simple, well-commented Norns script for turning Grid into a quantized keyboard.
 
+- e1: change root octave
 - e2: change root note
 - e3: change scale
+- k1: toggle alt
 - k2: up a fifth
 - k3: down a fifth
-- k1 + k3: magic mode
+- alt + k3: magic mode
 
-## Grid (required)
+## Grid (optional)
 
 - press a key to make beautiful sounds
 - left/right position controls pitch
 - up/down position controls timbre / midi CC
+
+## Arc (optional)
+
+- button: alt
+- E1: volume
+- E2: release
+- E3: filter cutoff
+- E4: probability
+- E1 alt: clock multiplier
+- E2 alt: random pan
+- E3 alt: filter resonance
+- E4 alt: jitter
 
 ## Crow (optional)
 
@@ -20,6 +34,19 @@ Sixteen notes, seven timbres. A simple, well-commented Norns script for turning 
 - out2: gate
 - out3: -5V to 5V on up/down axis
 - out4: 0 to 10V on up/down axis
+
+## MIDI (optional)
+
+- left/right position controls MIDI pitch
+- up/down position controls MIDI CC
+- Note length can be adjusted in parameters
+
+## Just Friends (optional)
+
+- Connect to Crow with i2c cable
+- left/right position controls pitch
+- up/down position controls level
+- Pro tip: Crow outputs 3/4 can be used to allow up/down position to modulate other JF parameters.
 
 ## install
 
@@ -30,6 +57,14 @@ Find it in the Maiden project manager
 If you get an 'error: init' on load, then make sure you have a Grid plugged in. The script doesn't function without one. If you have a Grid plugged in and you're still seeing this error then post below with details of what Grid you're using and how it's connected to your Norns.
 
 ## Version history
+
+### v2.15
+
+Arc support! Plug in an arc and you can now control volume, release, filter cutoff and note probability with the arc wheels. If your arc has a button, press it to access a second set of parameters: clock mult, random pan, filter resonance, and jitter, otherwise hold K1 on Norns. I've tuned arc encoder sensitivity to my personal taste, but there's a parameter to tweak it if you want to.
+
+Long keypress time to save a root/scale combo is now 1 second, rather than 2 seconds.
+
+Jitter now maxes out at 30%, because it didn't make much audible difference above that.
 
 ### v2.1
 
