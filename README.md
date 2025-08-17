@@ -1,5 +1,8 @@
 # gridofpoints
 
+[![Link to YouTube demonstation](http://img.youtube.com/vi/oZ8iEdrWWwE/0.jpg)](http://www.youtube.com/watch?v=oZ8iEdrWWwE "gridofpoints - an introduction")
+https://www.youtube.com/watch?v=oZ8iEdrWWwE
+
 Sixteen notes, seven timbres. A simple, well-commented Norns script for turning Grid into a quantized keyboard.
 
 - e1: change root octave
