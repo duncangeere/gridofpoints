@@ -1,5 +1,5 @@
 -- grid of points
--- v2.15 @duncangeere
+-- v2.16 @duncangeere
 --
 -- sixteen notes, seven timbres
 -- with apologies to Liz Harris
@@ -57,7 +57,11 @@ engine.name = "GridofPoints"
 g = grid.connect()
 
 -- Init midi
-if midi.devices ~= nil then my_midi = midi.connect() end
+-- if midi.devices ~= nil then my_midi = midi.connect() end
+local midi_devices
+local midi_device
+local midi_channel
+local midi_cc
 
 -- Init jf
 local function use_jf()
@@ -74,6 +78,9 @@ function init()
     musicutil = require("musicutil")
     -- Import json library: https://github.com/rxi/json.lua
     json = include("lib/json")
+
+    -- Build a list of midi devices for the params menu
+    build_midi_device_list()
 
     -- Set the engine parameters
     memory = {};
@@ -93,7 +100,9 @@ function init()
     -- Param variables
     mults = {{ "0.25x", "0.5x", "1x", "2x", "4x"},{ 0.25, 0.5, 1, 2, 4}};
     magicopts = {"false", "true"};
-    mult_hundred = 300 -- for arc
+    mult_hundred = 300; -- for arc
+    midi_channel = 1;
+    midi_cc = 1;
     
     --- randomness for arc probability
     rand_prob = {};
@@ -400,11 +409,12 @@ function playnote(x, y)
     -- MIDI
     if midi.devices ~= nil then
         -- send MIDI CC
-        my_midi:cc(
-            params:get("midi_cc"),
-            math.floor(util.linlin(rows, 2, 0, 127, y)),
-            params:get("midi_channel")
+        midi_device:cc(
+            midi_cc,
+            math.floor(util.linlin(2, rows, 127, 0, y)),
+            midi_channel
         )
+        
         -- send MIDI note
         play_midi_note(notes_nums[x] - 12, params:get("midi_notelength"))
     end
@@ -635,24 +645,39 @@ function addparams()
     -- MIDI
     params:add_separator("MIDI")
 
-    ---- MIDI channel number
-    params:add {
-        type = "number",
-        id = "midi_channel",
-        name = "MIDI channel number",
-        min = 1,
-        max = 16,
-        default = 1
+    params:add{
+        type = "option", 
+        id = "midi_device", 
+        name = "midi out device",
+        options = midi_devices, default = 1,
+        action = function(value) 
+            midi_device = midi.connect(value) 
+        end
+    }
+  
+    params:add{
+        type = "number", 
+        id = "midi_out_channel", 
+        name = "midi out channel",
+        min = 1, max = 16, default = 1,
+        action = function(value)
+            midi_device:note_off(a, nil, midi_channel)
+            midi_channel = value
+        end
     }
 
     ---- MIDI CC number
     params:add {
         type = "number",
-        id = "midi_cc",
+        id = "midi_cc_number",
         name = "MIDI cc number",
         min = 0,
         max = 127,
-        default = 1
+        default = 1,
+        action = function(value)
+            midi_cc = value;
+            print("MIDI CC set to " .. value)
+        end
     }
 
     ---- MIDI note length
@@ -1047,9 +1072,9 @@ end
 function play_midi_note(midi_note, midi_notelength)
     if midi.devices ~= nil then
         stopping = clock.run(function()
-            my_midi:note_on(midi_note, 100, params:get("midi_channel"))
+            midi_device:note_on(midi_note, 100, midi_channel)
             clock.sleep(params:get("midi_notelength"))
-            my_midi:note_off(midi_note, 100, params:get("midi_channel"))
+            midi_device:note_off(midi_note, 100, midi_channel)
         end)
     end
 end
@@ -1114,4 +1139,14 @@ function delta_mult(d)
     -- Round it to the nearest 100
     newparam = math.floor(mult_hundred / 100 + 0.5)
     params:set("magicmult", newparam, true)
+end
+
+-- Build a list of connected MIDI devices
+function build_midi_device_list()
+  midi_devices = {}
+  for i = 1,#midi.vports do
+    local long_name = midi.vports[i].name
+    local short_name = string.len(long_name) > 15 and util.acronym(long_name) or long_name
+    table.insert(midi_devices,i..": "..short_name)
+  end
 end

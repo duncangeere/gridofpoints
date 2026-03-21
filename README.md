@@ -60,6 +60,10 @@ If you get an 'error: init' on load, then make sure you have a Grid plugged in. 
 
 ## Version history
 
+### v2.16
+
+Fixing some MIDI bugs. Should work much better now!
+
 ### v2.15
 
 Arc support! Plug in an arc and you can now control volume, release, filter cutoff and note probability with the arc wheels. If your arc has a button, press it to access a second set of parameters: clock mult, random pan, filter resonance, and jitter, otherwise hold K1 on Norns. I've tuned arc encoder sensitivity to my personal taste, but there's a parameter to tweak it if you want to.
