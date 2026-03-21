@@ -676,7 +676,6 @@ function addparams()
         default = 1,
         action = function(value)
             midi_cc = value;
-            print("MIDI CC set to " .. value)
         end
     }
 
