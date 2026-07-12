@@ -1,6 +1,6 @@
 -- griiid of points
 -- an iii port of gridofpoints
--- by @duncangeere and @dessertplanet 
+-- by @duncangeere, @dessertplanet and @kotte
 --
 -- sixteen notes, seven velocities
 -- with apologies to Liz Harris
@@ -55,7 +55,7 @@ function event_grid(x, y, z)
                     shift = true
                 end
             end
-            
+
         else -- rest of the rows
             if shift then
                 if (x == 16) and (y == 8) then
